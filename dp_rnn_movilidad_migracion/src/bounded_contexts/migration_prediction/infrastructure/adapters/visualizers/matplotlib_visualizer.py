@@ -2,11 +2,9 @@
 Implementación del visualizador utilizando Matplotlib y Seaborn.
 """
 import os
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Dict, List, Any
+from typing import Dict, List
 
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.visualization_port import \
     VisualizationPort
