@@ -17,6 +17,8 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infras
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.visualizers.matplotlib_visualizer import MatplotlibVisualizer
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.repositories.file_prediction_repository import FilePredictionRepository
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.application.services.migration_prediction_service import MigrationPredictionService
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.predictors.monte_carlo_prediction_generator import MonteCarloPredictor
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.analyzers.monte_carlo_uncertainty_analyzer import MonteCarloUncertaintyAnalyzer
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -138,6 +140,19 @@ class ApplicationContainer(containers.DeclarativeContainer):
         FilePredictionRepository,
         output_dir=prediction_output_dir
     )
+
+    # Adaptadores adicionales para predicción
+    prediction_generator = providers.Factory(
+        MonteCarloPredictor,
+        cv_threshold=0.2,
+        batch_size=20
+    )
+
+    uncertainty_analyzer = providers.Factory(
+        MonteCarloUncertaintyAnalyzer,
+        high_uncertainty_threshold=45.0,
+        target_normalizer=target_normalizer
+    )
     
     # Servicios
     migration_prediction_service = providers.Factory(
@@ -147,4 +162,6 @@ class ApplicationContainer(containers.DeclarativeContainer):
         data_preparer=model_data_preparation_service,
         prediction_repository=prediction_repository,
         visualizer=visualizer,
+        prediction_generator=prediction_generator,
+        uncertainty_analyzer=uncertainty_analyzer
     )
