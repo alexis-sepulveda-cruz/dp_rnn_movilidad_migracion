@@ -42,7 +42,7 @@ class InegiPreprocessor(DataPreprocessor):
     
     def preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Preprocesa los datos de INEGI, incluyendo agregación por estado.
+        Preprocesa los datos de INEGI, incluyendo selección de columnas y agregación por estado.
         
         Args:
             df: DataFrame con datos crudos de INEGI a nivel localidad
@@ -51,6 +51,17 @@ class InegiPreprocessor(DataPreprocessor):
             DataFrame procesado con datos agregados por estado
         """
         self.logger.info("Iniciando preprocesamiento de datos INEGI")
+        
+        # Seleccionar columnas relevantes primero
+        df = df[
+            ['ENT', 'NOM_ENT', 'MUN', 'NOM_MUN', 'LOC', 'NOM_LOC'] 
+            + NUMERIC_FEATURES 
+            + list(CATEGORICAL_FEATURES['binary'].keys())
+            + list(CATEGORICAL_FEATURES['ordinal'].keys())
+            + list(CATEGORICAL_FEATURES['nominal_prefixes'].values())
+        ]
+        
+        self.logger.info(f"Columnas seleccionadas: {df.shape[1]}")
         
         # Reemplazar valores faltantes
         df = df.replace({'*': np.nan, 'Nulo': np.nan})

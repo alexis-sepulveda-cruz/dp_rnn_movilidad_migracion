@@ -48,10 +48,10 @@ class InegiRepository(DataRepository):
 
     def load_data(self) -> pd.DataFrame:
         """
-        Carga datos de INEGI desde un archivo CSV y aplica transformaciones.
+        Carga datos de INEGI desde un archivo CSV.
 
         Returns:
-            DataFrame con los datos de INEGI procesados.
+            DataFrame con los datos crudos de INEGI.
         """
         self.logger.info(f"Cargando datos de INEGI desde {self.inegi_path}/{self.inegi_file}")
 
@@ -60,14 +60,7 @@ class InegiRepository(DataRepository):
         df = pd.read_csv(file_path, encoding='ISO-8859-1', low_memory=False)
 
         self.logger.info(f"Archivo cargado. Shape inicial: {df.shape}")
-
-        return df[
-            ['ENT', 'NOM_ENT', 'MUN', 'NOM_MUN', 'LOC', 'NOM_LOC'] 
-            + NUMERIC_FEATURES 
-            + list(CATEGORICAL_FEATURES['binary'].keys())
-            + list(CATEGORICAL_FEATURES['ordinal'].keys())
-            + list(CATEGORICAL_FEATURES['nominal_prefixes'].values())
-        ]
+        return df
 
     def get_raw_feature_names(self) -> Dict[str, Any]:
         """
