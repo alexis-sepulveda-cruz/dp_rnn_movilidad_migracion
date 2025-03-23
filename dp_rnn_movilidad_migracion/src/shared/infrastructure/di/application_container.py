@@ -124,18 +124,15 @@ class ApplicationContainer(containers.DeclarativeContainer):
         TensorflowModelTrainer
     )
 
-    visualization_dir = providers.Singleton(
-        os.path.join(config.paths.base, 'graficos', 'monte_carlo')
-    )
+    visualization_dir = os.path.join('/Users/armandoalexissepulveda/Documents/Maestria_Ciencia_Datos/Tesis/dp_rnn_movilidad_migracion', 'graficos', 'monte_carlo')
+
     
     visualizer = providers.Factory(
         MatplotlibVisualizer,
         output_dir=visualization_dir
     )
     
-    prediction_output_dir = providers.Singleton(
-        os.path.join(config.paths.base, 'resultados', 'predicciones')
-    )
+    prediction_output_dir = os.path.join('/Users/armandoalexissepulveda/Documents/Maestria_Ciencia_Datos/Tesis/dp_rnn_movilidad_migracion', 'resultados', 'predicciones')
     
     prediction_repository = providers.Factory(
         FilePredictionRepository,
