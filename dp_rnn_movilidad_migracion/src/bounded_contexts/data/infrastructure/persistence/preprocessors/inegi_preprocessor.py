@@ -4,7 +4,6 @@ Implementación del preprocesador para datos de INEGI.
 import pandas as pd
 import numpy as np
 from typing import Dict, Any
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, LabelEncoder
 
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.domain.ports.data_preprocessor import DataPreprocessor
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.schemas.inegi_schema import (
@@ -29,15 +28,6 @@ class InegiPreprocessor(DataPreprocessor):
     def __init__(self):
         """Inicializa el preprocesador de INEGI."""
         self.logger = LoggerFactory.get_composite_logger(__name__)
-        
-        # Inicializar escaladores
-        self.scaler_temporal = MinMaxScaler(feature_range=(0, 1))
-        self.scaler_target = MinMaxScaler(feature_range=(-1, 1))
-        self.scaler_static = MinMaxScaler(feature_range=(0, 1))
-        
-        # Inicializar encoders para variables categóricas
-        self._initialize_categorical_encoders()
-        
         self.logger.info("Preprocesador de INEGI inicializado")
     
     def preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -203,17 +193,3 @@ class InegiPreprocessor(DataPreprocessor):
         df['INDICE_INFRAESTRUCTURA'] = df[list(CATEGORICAL_FEATURES['binary'].keys()) + 
                                         list(CATEGORICAL_FEATURES['ordinal'].keys())].mean(axis=1)
         df['INDICE_CONFLICTOS'] = df[[col for col in df.columns if col.startswith('C_CONFLICTO')]].mean(axis=1)
-    
-    def _initialize_categorical_encoders(self):
-        """Inicializa encoders para variables categóricas con manejo de errores."""
-        try:
-            self.categorical_encoders = {
-                'actividad': OneHotEncoder(sparse_output=False, handle_unknown='ignore'),
-                'trabajo': OneHotEncoder(sparse_output=False, handle_unknown='ignore'),
-                'conflictos': LabelEncoder(),
-                'problema': OneHotEncoder(sparse_output=False, handle_unknown='ignore'),
-                'infraestructura': LabelEncoder()
-            }
-        except Exception as e:
-            self.logger.error(f"Error al inicializar encoders categóricos: {str(e)}")
-            raise RuntimeError(f"Error al inicializar encoders categóricos: {str(e)}")
