@@ -5,6 +5,7 @@ from dependency_injector import containers, providers
 
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.repositories.conapo_repository import ConapoRepository
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.repositories.inegi_repository import InegiRepository
+from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.preprocessors.conapo_preprocessor import ConapoPreprocessor
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -43,14 +44,19 @@ class ApplicationContainer(containers.DeclarativeContainer):
         ConapoRepository,
         conapo_path=config.paths.conapo,
         conapo_file=config.files.conapo,
-        start_year=config.data.years.start,
-        end_year=config.data.years.end,
-        include_derived=True,
-        include_targets=True
     )
 
     inegi_repository = providers.Singleton(
         InegiRepository,
         inegi_path=config.paths.inegi,
         inegi_file=config.files.inegi
+    )
+
+    # Preprocesadores
+    conapo_preprocessor = providers.Singleton(
+        ConapoPreprocessor,
+        start_year=config.data.years.start,
+        end_year=config.data.years.end,
+        include_derived=True,
+        include_targets=True
     )

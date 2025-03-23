@@ -40,8 +40,7 @@ def bootstrap_app():
 
     # Configurar el wiring
     containers_to_wire = [
-        "dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.repositories.conapo_repository",
-        "dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.repositories.inegi_repository",
+        "dp_rnn_movilidad_migracion.src.bounded_contexts.data.application.services.conapo_data_service"
     ]
 
     # Inicializar recursos
