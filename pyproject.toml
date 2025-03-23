@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "dp-rnn-movilidad-migracion"
+version = "0.1.0"
+description = ""
+authors = ["Armando Alexis Sepúlveda Cruz <armando.sepulvedacrz@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+python-dotenv = "^1.0.1"
+pandas = "^2.2.3"
+scikit-learn = "^1.6.1"
+tensorflow = "^2.19.0"
+matplotlib = "^3.10.1"
+seaborn = "^0.13.2"
+openpyxl = "^3.1.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
