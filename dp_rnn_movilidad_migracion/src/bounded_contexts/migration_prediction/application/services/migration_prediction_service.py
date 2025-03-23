@@ -1,3 +1,5 @@
+import pandas as pd
+
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.model_builder_port import \
     ModelBuilderPort
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.model_trainer_port import \
@@ -14,24 +16,27 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.applic
     PredictionRequestDTO
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.application.dto.prediction_result_dto import \
     PredictionResultDTO
-from dp_rnn_movilidad_migracion.src.shared.domain.ports.logger_port import LoggerPort
+from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.schemas.conapo_schema import TEMPORAL_FEATURES
+from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.schemas.inegi_schema import INEGI_STATIC_FEATURES
+from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 
 
 class MigrationPredictionService:
     """Servicio de aplicación para predecir migración."""
 
-    def __init__(self, model_builder: ModelBuilderPort,
-                 model_trainer: ModelTrainerPort,
-                 data_preparer: DataPreparationPort,
-                 prediction_repository: PredictionRepositoryPort,
-                 visualizer: VisualizationPort,
-                 logger: LoggerPort):
+    def __init__(
+        self, model_builder: ModelBuilderPort,
+        model_trainer: ModelTrainerPort,
+        data_preparer: DataPreparationPort,
+        prediction_repository: PredictionRepositoryPort,
+        visualizer: VisualizationPort
+    ):
+        self.logger = LoggerFactory.get_composite_logger(__name__)
         self.model_builder = model_builder
         self.model_trainer = model_trainer
         self.data_preparer = data_preparer
         self.prediction_repository = prediction_repository
         self.visualizer = visualizer
-        self.logger = logger
         self.model = None
 
     def train_model(self, temporal_data: pd.DataFrame, static_data: pd.DataFrame,
@@ -49,7 +54,14 @@ class MigrationPredictionService:
             batch_size: Tamaño del lote
         """
         self.logger.info("Preparando datos para entrenamiento")
-        X, y = self.data_preparer.prepare_data(temporal_data, static_data)
+        X, y = self.data_preparer.prepare_model_data(
+            temporal_data=temporal_data,
+            static_data=static_data,
+            target_column='CRE_NAT',
+            sequence_length=sequence_length,
+            temporal_features=TEMPORAL_FEATURES,
+            static_features=INEGI_STATIC_FEATURES
+        )
 
         # Verificar que los datos están correctamente formados
         if X.shape[0] != y.shape[0]:

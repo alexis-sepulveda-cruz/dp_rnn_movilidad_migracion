@@ -7,15 +7,18 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain
     PredictionResult
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.value_objects.uncertainty_metrics import \
     UncertaintyMetrics
-
+from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 
 class FilePredictionRepository(PredictionRepositoryPort):
     """Implementación de PredictionRepositoryPort que guarda predicciones en archivos."""
 
     def __init__(self, output_dir: str):
         self.output_dir = output_dir
+        self.logger = LoggerFactory.get_composite_logger(__name__)
+        
         # Crear directorio si no existe
         os.makedirs(self.output_dir, exist_ok=True)
+        self.logger.info(f"Repositorio de predicciones inicializado con directorio: {self.output_dir}")
 
     def save_prediction(self, prediction: PredictionResult) -> None:
         """
@@ -36,6 +39,7 @@ class FilePredictionRepository(PredictionRepositoryPort):
         # Guardar CSV
         csv_path = os.path.join(self.output_dir, f'{prediction.state}_prediccion.csv')
         df.to_csv(csv_path, index=False)
+        self.logger.info(f"Predicción guardada en CSV: {csv_path}")
 
         # Guardar metadatos en JSON
         metadata = {
@@ -52,6 +56,10 @@ class FilePredictionRepository(PredictionRepositoryPort):
         json_path = os.path.join(self.output_dir, f'{prediction.state}_metadata.json')
         with open(json_path, 'w') as f:
             json.dump(metadata, f, indent=2)
+        
+        self.logger.info(f"Metadatos de predicción guardados en JSON: {json_path}")
+        self.logger.debug(f"Detalles de fiabilidad: score={metadata['reliability_score']:.2f}, "
+                         f"CV medio={metadata['mean_cv']:.2f}")
 
     def get_prediction(self, state: str) -> PredictionResult:
         """
@@ -63,17 +71,22 @@ class FilePredictionRepository(PredictionRepositoryPort):
         Returns:
             Resultado de predicción recuperado
         """
+        self.logger.info(f"Intentando recuperar predicción para: {state}")
+        
         # Verificar si existen los archivos
         csv_path = os.path.join(self.output_dir, f'{state}_prediccion.csv')
         json_path = os.path.join(self.output_dir, f'{state}_metadata.json')
 
         if not (os.path.exists(csv_path) and os.path.exists(json_path)):
+            self.logger.error(f"No se encontraron archivos de predicción para {state}")
             raise FileNotFoundError(f"No se encontraron predicciones para {state}")
 
         # Cargar CSV
+        self.logger.debug(f"Cargando datos desde: {csv_path}")
         df = pd.read_csv(csv_path)
 
         # Cargar JSON
+        self.logger.debug(f"Cargando metadatos desde: {json_path}")
         with open(json_path, 'r') as f:
             metadata = json.load(f)
 
@@ -89,7 +102,7 @@ class FilePredictionRepository(PredictionRepositoryPort):
         )
 
         # Crear y devolver entidad PredictionResult
-        return PredictionResult(
+        result = PredictionResult(
             state=state,
             years=df['AÑO'].tolist(),
             values=df['CRE_NAT'].tolist(),
@@ -98,3 +111,7 @@ class FilePredictionRepository(PredictionRepositoryPort):
             std_devs=df['CRE_NAT_std'].tolist(),
             uncertainty_metrics=uncertainty_metrics
         )
+        
+        self.logger.info(f"Predicción recuperada correctamente para {state}, "
+                        f"años: {min(result.years)}-{max(result.years)}")
+        return result

@@ -19,7 +19,7 @@ class SequenceDataPreparer(DataPreparationPort):
         self.scaler_target = MinMaxScaler(feature_range=(-1, 1))
         self.scaler_static = MinMaxScaler(feature_range=(0, 1))
 
-    def prepare_data(self, df_temporal: pd.DataFrame,
+    def prepare_model_data(self, df_temporal: pd.DataFrame,
                      df_static: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         """
         Prepara los datos combinando series temporales con características estáticas.

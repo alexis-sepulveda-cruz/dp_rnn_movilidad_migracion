@@ -4,12 +4,15 @@ import tensorflow as tf
 from tensorflow.keras.layers import LSTM, Dense, Dropout, BatchNormalization
 from tensorflow.keras.models import Sequential
 
+from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
+
 
 class TensorflowRNNModelBuilder(ModelBuilderPort):
     """Implementación de ModelBuilderPort usando TensorFlow."""
 
     def __init__(self, random_seed: int = 42):
         self.random_seed = random_seed
+        self.logger = LoggerFactory.get_composite_logger(__name__)
 
     def _set_seed(self):
         """Establece semillas aleatorias para reproducibilidad."""
