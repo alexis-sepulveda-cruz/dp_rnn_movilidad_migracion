@@ -69,12 +69,12 @@ class InegiRepository(DataRepository):
             + list(CATEGORICAL_FEATURES['nominal_prefixes'].values())
         ]
 
-    def get_feature_names(self) -> Dict[str, Any]:
+    def get_raw_feature_names(self) -> Dict[str, Any]:
         """
-        Obtiene los nombres de las características disponibles en INEGI.
+        Obtiene los nombres de las características disponibles en los datos crudos de INEGI.
 
         Returns:
-            Diccionario con las características y su configuración.
+            Diccionario con las características originales y su configuración.
         """
         return {
             'numeric_features': NUMERIC_FEATURES,

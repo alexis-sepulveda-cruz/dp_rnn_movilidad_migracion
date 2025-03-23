@@ -2,7 +2,7 @@
 Implementación del preprocesador para datos de CONAPO.
 """
 
-from typing import List
+from typing import List, Dict, Any
 import pandas as pd
 
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.domain.ports.data_preprocessor import DataPreprocessor
@@ -68,6 +68,31 @@ class ConapoPreprocessor(DataPreprocessor):
         self.logger.info(f"Datos de CONAPO procesados: {result_df.shape} filas, {len(selected_columns)} columnas")
         return result_df
     
+    def get_processed_feature_names(self) -> Dict[str, Any]:
+        """
+        Obtiene los nombres de las características disponibles después del preprocesamiento.
+        
+        Returns:
+            Diccionario con las características procesadas y su configuración.
+        """
+        features = list(TEMPORAL_FEATURES)
+        
+        # Incluir características derivadas si se solicita
+        if self.include_derived:
+            features.extend([f for f in CONAPO_DERIVED_FEATURES if f not in features])
+
+        # Incluir variables objetivo si se solicita
+        if self.include_targets:
+            features.extend([f for f in CONAPO_TARGET_VARIABLES if f not in features])
+            
+        return {
+            'temporal_features': TEMPORAL_FEATURES,
+            'derived_features': CONAPO_DERIVED_FEATURES if self.include_derived else [],
+            'target_variables': CONAPO_TARGET_VARIABLES if self.include_targets else [],
+            'processed_features': features,
+            'id_columns': ['AÑO', 'CVE_GEO', 'ENTIDAD']
+        }
+        
     def _apply_filters(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Aplica filtros al DataFrame según la configuración.

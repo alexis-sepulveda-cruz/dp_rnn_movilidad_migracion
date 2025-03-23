@@ -60,12 +60,12 @@ class ConapoRepository(DataRepository):
             self.logger.error(f"Error al cargar datos de CONAPO: {str(e)}")
             raise
 
-    def get_feature_names(self) -> Dict[str, Any]:
+    def get_raw_feature_names(self) -> Dict[str, Any]:
         """
-        Obtiene los nombres de las características disponibles en CONAPO.
+        Obtiene los nombres de las características disponibles en los datos crudos de CONAPO.
 
         Returns:
-            Diccionario con las características y su configuración.
+            Diccionario con las características originales y su configuración.
         """
         return {
             'temporal_features': TEMPORAL_FEATURES,

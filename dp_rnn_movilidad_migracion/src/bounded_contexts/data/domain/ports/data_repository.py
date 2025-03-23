@@ -30,11 +30,11 @@ class DataRepository(ABC):
         pass
 
     @abstractmethod
-    def get_feature_names(self) -> Dict[str, Any]:
+    def get_raw_feature_names(self) -> Dict[str, Any]:
         """
-        Obtiene los nombres de las características disponibles en este repositorio.
+        Obtiene los nombres de las características disponibles en los datos crudos.
 
         Returns:
-            Diccionario con los nombres de las características.
+            Diccionario con los nombres de las características originales.
         """
         pass

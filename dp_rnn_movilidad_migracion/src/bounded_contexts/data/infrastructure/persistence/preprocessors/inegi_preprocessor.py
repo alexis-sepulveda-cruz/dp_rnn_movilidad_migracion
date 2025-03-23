@@ -82,12 +82,12 @@ class InegiPreprocessor(DataPreprocessor):
         self.logger.info(f"Preprocesamiento completado. Shape final: {df_state.shape}")
         return df_state
     
-    def get_feature_names(self) -> Dict[str, Any]:
+    def get_processed_feature_names(self) -> Dict[str, Any]:
         """
-        Obtiene los nombres de características disponibles después del preprocesamiento.
+        Obtiene los nombres de las características disponibles después del preprocesamiento.
         
         Returns:
-            Diccionario con las características y su configuración.
+            Diccionario con las características procesadas y su configuración.
         """
         derived_features = INEGI_DERIVED_FEATURES + [
             'TASA_DESEMPLEO', 

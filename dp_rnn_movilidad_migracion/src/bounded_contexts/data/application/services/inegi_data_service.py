@@ -68,8 +68,8 @@ class InegiDataService:
             Diccionario con metadatos de las características
         """
         # Combinamos metadatos del repositorio y del preprocesador
-        repo_features = self.inegi_repository.get_feature_names()
-        processed_features = self.inegi_preprocessor.get_feature_names()
+        repo_features = self.inegi_repository.get_raw_feature_names()
+        processed_features = self.inegi_preprocessor.get_processed_feature_names()
         
         return {
             'raw': repo_features,

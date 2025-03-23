@@ -28,11 +28,11 @@ class DataPreprocessor(ABC):
         pass
     
     @abstractmethod
-    def get_feature_names(self) -> Dict[str, Any]:
+    def get_processed_feature_names(self) -> Dict[str, Any]:
         """
         Obtiene los nombres de las características disponibles después del preprocesamiento.
         
         Returns:
-            Diccionario con las características y su configuración.
+            Diccionario con las características procesadas y su configuración.
         """
         pass
