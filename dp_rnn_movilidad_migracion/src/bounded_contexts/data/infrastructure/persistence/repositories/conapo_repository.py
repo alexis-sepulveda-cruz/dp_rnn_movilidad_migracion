@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Dict, Any, List
 import pandas as pd
 
-from dp_rnn_movilidad_migracion.src.shared.domain.ports.logger_port import LoggerPort
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.domain.ports.data_repository import DataRepository
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.schemas.conapo_schema import (
     TEMPORAL_FEATURES,
