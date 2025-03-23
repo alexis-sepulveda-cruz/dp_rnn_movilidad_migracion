@@ -4,11 +4,8 @@ Servicio de aplicación para orquestar operaciones con datos de CONAPO.
 
 import pandas as pd
 
-from dependency_injector.wiring import inject, Provide
-
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.domain.ports.data_repository import DataRepository
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.domain.ports.data_preprocessor import DataPreprocessor
-from dp_rnn_movilidad_migracion.src.shared.infrastructure.di.application_container import ApplicationContainer
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 
 
@@ -19,11 +16,10 @@ class ConapoDataService:
     Coordina la carga y el preprocesamiento de datos de CONAPO.
     """
     
-    @inject
     def __init__(
         self,
-        repository: DataRepository = Provide[ApplicationContainer.conapo_repository],
-        preprocessor: DataPreprocessor = Provide[ApplicationContainer.conapo_preprocessor]
+        repository: DataRepository,
+        preprocessor: DataPreprocessor
     ):
         """
         Inicializa el servicio de datos de CONAPO.

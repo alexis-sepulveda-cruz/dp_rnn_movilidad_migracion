@@ -4,12 +4,9 @@ Servicio de datos INEGI.
 import pandas as pd
 from typing import Dict, Any
 
-from dependency_injector.wiring import inject, Provide
-
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.domain.ports.data_repository import DataRepository
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.domain.ports.data_preprocessor import DataPreprocessor
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
-from dp_rnn_movilidad_migracion.src.shared.infrastructure.di.application_container import ApplicationContainer
 
 
 class InegiDataService:
@@ -20,11 +17,10 @@ class InegiDataService:
     y el preprocesador para transformarlos.
     """
     
-    @inject
     def __init__(
         self,
-        inegi_repository: DataRepository = Provide[ApplicationContainer.inegi_repository],
-        inegi_preprocessor: DataPreprocessor = Provide[ApplicationContainer.inegi_preprocessor]
+        repository: DataRepository,
+        preprocessor: DataPreprocessor
     ):
         """
         Inicializa el servicio con sus dependencias.
@@ -34,8 +30,8 @@ class InegiDataService:
             inegi_preprocessor: Implementación del preprocesador de datos INEGI
         """
         self.logger = LoggerFactory.get_composite_logger(__name__)
-        self.inegi_repository = inegi_repository
-        self.inegi_preprocessor = inegi_preprocessor
+        self.inegi_repository = repository
+        self.inegi_preprocessor = preprocessor
         
         self.logger.info("Servicio de datos INEGI inicializado")
     
