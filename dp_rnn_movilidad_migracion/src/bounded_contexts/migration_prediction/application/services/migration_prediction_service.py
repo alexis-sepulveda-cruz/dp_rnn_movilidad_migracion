@@ -1,5 +1,5 @@
+from typing import Dict, List
 import pandas as pd
-import numpy as np
 
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.model_builder_port import \
     ModelBuilderPort
@@ -53,7 +53,8 @@ class MigrationPredictionService:
 
     def train_model(self, temporal_data: pd.DataFrame, static_data: pd.DataFrame,
                     sequence_length: int = 5, validation_split: float = 0.2,
-                    epochs: int = 100, batch_size: int = 128) -> None:
+                    epochs: int = 100, batch_size: int = 128, 
+                    visualize_history: bool = False) -> Dict[str, List[float]]:
         """
         Entrena el modelo con los datos proporcionados.
 
@@ -64,6 +65,10 @@ class MigrationPredictionService:
             validation_split: Fracción de datos para validación
             epochs: Número de épocas
             batch_size: Tamaño del lote
+            visualize_history: Si es True, visualiza el historial de entrenamiento
+
+        Returns:
+            Diccionario con histórico de métricas durante el entrenamiento
         """
         self.logger.info("Preparando datos para entrenamiento")
         X, y = self.data_preparer.prepare_model_data(
@@ -88,6 +93,15 @@ class MigrationPredictionService:
         )
 
         self.logger.info(f"Entrenamiento completado. Pérdida final: {history.history['loss'][-1]}")
+        
+        # Convertir el historial a un formato más conveniente (diccionario simple)
+        history_dict = {key: values for key, values in history.history.items()}
+        
+        # Visualizar el historial si se solicita
+        if visualize_history and self.visualizer is not None:
+            self.visualizer.plot_training_history(history_dict)
+        
+        return history_dict
 
     def predict_migration(self, request: PredictionRequestDTO, 
                          temporal_data: pd.DataFrame, 

@@ -1,19 +1,40 @@
+"""
+Implementación del visualizador utilizando Matplotlib y Seaborn.
+"""
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from typing import Dict, List, Any
+
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.visualization_port import \
     VisualizationPort
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.entities.prediction_result import \
     PredictionResult
-import matplotlib.pyplot as plt
-import seaborn as sns
-import os
+from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 
 
 class MatplotlibVisualizer(VisualizationPort):
     """Implementación de VisualizationPort usando Matplotlib y Seaborn."""
 
     def __init__(self, output_dir: str):
+        """
+        Inicializa el visualizador.
+        
+        Args:
+            output_dir: Directorio donde se guardarán las visualizaciones.
+        """
+        self.logger = LoggerFactory.get_composite_logger(__name__)
         self.output_dir = output_dir
+        
         # Crear directorio si no existe
         os.makedirs(self.output_dir, exist_ok=True)
+        
+        # Configurar estilo de visualización
+        sns.set_theme('paper')
+        
+        self.logger.info(f"Visualizador inicializado. Directorio de salida: {output_dir}")
 
     def plot_predictions_with_uncertainty(self, prediction: PredictionResult) -> None:
         """
@@ -74,4 +95,51 @@ class MatplotlibVisualizer(VisualizationPort):
 
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, f'{prediction.state}_predicciones_con_incertidumbre.png'))
+        plt.close()
+
+    def plot_training_history(self, history: Dict[str, List[float]], save_path: str = None) -> None:
+        """
+        Visualiza el historial de entrenamiento de un modelo.
+        
+        Args:
+            history: Diccionario con histórico de métricas durante el entrenamiento
+            save_path: Ruta donde guardar la visualización. Si es None, se usa el directorio predeterminado.
+        """
+        self.logger.info("Generando visualización del historial de entrenamiento")
+        
+        plt.figure(figsize=(12, 4))
+        
+        # Gráfico de pérdida
+        plt.subplot(1, 2, 1)
+        plt.plot(history['loss'], label='Training Loss')
+        plt.plot(history['val_loss'], label='Validation Loss')
+        plt.title('Model Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss (MSE)')
+        plt.legend()
+        plt.grid(True, linestyle='--', alpha=0.7)
+        
+        # Gráfico de error absoluto medio
+        plt.subplot(1, 2, 2)
+        plt.plot(history['mae'], label='Training MAE')
+        plt.plot(history['val_mae'], label='Validation MAE')
+        plt.title('Model MAE')
+        plt.xlabel('Epoch')
+        plt.ylabel('Mean Absolute Error')
+        plt.legend()
+        plt.grid(True, linestyle='--', alpha=0.7)
+        
+        # Ajustar layout
+        plt.tight_layout()
+        
+        # Guardar figura si se proporciona ruta o usar directorio predeterminado
+        if save_path:
+            output_path = save_path
+        else:
+            output_path = os.path.join(self.output_dir, 'training_history.png')
+            
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        self.logger.info(f"Historial de entrenamiento guardado en: {output_path}")
+        
+        # Cerrar figura para liberar recursos
         plt.close()

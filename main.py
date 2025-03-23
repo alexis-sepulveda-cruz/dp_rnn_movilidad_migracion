@@ -6,12 +6,13 @@ from dp_rnn_movilidad_migracion.src.shared.infrastructure.bootstrap import boots
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.di.application_container import ApplicationContainer
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.application.services.migration_prediction_service import MigrationPredictionService
-
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.visualizers.matplotlib_visualizer import MatplotlibVisualizer
 
 @inject
 def main(
     conapo_service = Provide[ApplicationContainer.conapo_data_service],
     inegi_service = Provide[ApplicationContainer.inegi_data_service],
+    visualizer = Provide[ApplicationContainer.visualizer],
     migration_prediction_service: MigrationPredictionService = Provide[ApplicationContainer.migration_prediction_service]
 ):
     # Cargar datos
@@ -28,10 +29,16 @@ def main(
 
 
     logger.info("Migration Prediction Service")
-    migration_prediction_service.train_model(
+    history = migration_prediction_service.train_model(
         temporal_data=conapo_data,
-        static_data=inegi_data
+        static_data=inegi_data,
+        visualize_history=True  # Habilitar visualización del historial
     )
+
+    # Visualizar historial de entrenamiento
+    visualizer.plot_training_history(history)
+    
+    logger.info(f"Entrenamiento completado con {len(history['loss'])} épocas")
 
 
 if __name__ == "__main__":
