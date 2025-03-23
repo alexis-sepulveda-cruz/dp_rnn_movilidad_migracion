@@ -39,3 +39,33 @@ class DataPreparationPort(ABC):
             Tupla con datos de entrada (X) y salida (y) preparados para el modelo
         """
         pass
+
+    @abstractmethod
+    def prepare_prediction_sequence(
+        self, 
+        entity_id: str, 
+        temporal_data: pd.DataFrame,
+        static_data: pd.DataFrame, 
+        sequence_length: int,
+        temporal_features: Optional[List[str]] = None,
+        static_features: Optional[List[str]] = None,
+        id_column: str = 'ENTIDAD',
+        time_column: str = 'AÑO'
+    ) -> np.ndarray:
+        """
+        Prepara una secuencia para predicción.
+        
+        Args:
+            entity_id: Identificador de la entidad (ej: nombre del estado)
+            temporal_data: DataFrame con datos temporales
+            static_data: DataFrame con datos estáticos
+            sequence_length: Longitud de la secuencia
+            temporal_features: Lista de características temporales a usar
+            static_features: Lista de características estáticas a usar
+            id_column: Nombre de la columna de identificación (entidad)
+            time_column: Nombre de la columna temporal (año)
+            
+        Returns:
+            Secuencia preparada para predicción
+        """
+        pass

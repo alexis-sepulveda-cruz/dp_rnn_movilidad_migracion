@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from typing import Tuple, List, Optional
 
-from dp_rnn_movilidad_migracion.src.bounded_contexts.modeling.domain.ports.data_preparation_port import DataPreparationPort
-from dp_rnn_movilidad_migracion.src.bounded_contexts.modeling.domain.ports.normalization_port import NormalizationPort
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.data_preparation_port import DataPreparationPort
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.normalization_port import NormalizationPort
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 
 
@@ -177,3 +177,75 @@ class ModelDataPreparationService(DataPreparationPort):
                 y.append(state_target[i + sequence_length])
         
         return np.array(X), np.array(y)
+
+    def prepare_prediction_sequence(
+        self, 
+        entity_id: str, 
+        temporal_data: pd.DataFrame,
+        static_data: pd.DataFrame, 
+        sequence_length: int,
+        temporal_features: Optional[List[str]] = None,
+        static_features: Optional[List[str]] = None,
+        id_column: str = 'ENTIDAD',
+        time_column: str = 'AÑO'
+    ) -> np.ndarray:
+        """
+        Prepara una secuencia para predicción.
+        
+        Args:
+            entity_id: Identificador de la entidad (ej: nombre del estado)
+            temporal_data: DataFrame con datos temporales
+            static_data: DataFrame con datos estáticos
+            sequence_length: Longitud de la secuencia
+            temporal_features: Lista de características temporales a usar
+            static_features: Lista de características estáticas a usar
+            id_column: Nombre de la columna de identificación (entidad)
+            time_column: Nombre de la columna temporal (año)
+            
+        Returns:
+            Secuencia preparada para predicción
+        """
+        self.logger.info(f"Preparando secuencia de predicción para {entity_id}")
+        
+        # Filtrar y ordenar datos temporales para la entidad específica
+        entity_temporal = temporal_data[temporal_data[id_column] == entity_id].sort_values(time_column)
+        
+        if entity_temporal.empty:
+            raise ValueError(f"No se encontraron datos temporales para {entity_id}")
+            
+        # Tomar la última secuencia disponible
+        last_sequence = entity_temporal.tail(sequence_length)
+        
+        if len(last_sequence) < sequence_length:
+            self.logger.warning(f"Datos insuficientes para {entity_id}. Se requieren {sequence_length} registros, encontrados {len(last_sequence)}")
+            raise ValueError(f"Datos temporales insuficientes para {entity_id}")
+        
+        # Filtrar datos estáticos para la entidad
+        entity_static = static_data[static_data['NOM_ENT'] == entity_id]
+        
+        if entity_static.empty:
+            raise ValueError(f"No se encontraron datos estáticos para {entity_id}")
+        
+        # Seleccionar características relevantes
+        if temporal_features is None:
+            temporal_features_df = last_sequence.drop([id_column, time_column], axis=1, errors='ignore')
+        else:
+            temporal_features_df = last_sequence[temporal_features]
+            
+        if static_features is None:
+            static_features_df = entity_static.drop(['NOM_ENT'], axis=1, errors='ignore')
+        else:
+            static_features_df = entity_static[static_features]
+            
+        # Normalizar los datos usando los normalizadores ya entrenados
+        temporal_normalized = self.temporal_normalizer.transform(temporal_features_df)
+        static_normalized = self.static_normalizer.transform(static_features_df)
+        
+        # Combinar datos temporales y estáticos
+        sequence_with_static = np.column_stack([
+            temporal_normalized,
+            np.tile(static_normalized[0], (sequence_length, 1))
+        ])
+        
+        self.logger.info(f"Secuencia preparada con forma {sequence_with_static.shape}")
+        return sequence_with_static

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-from dp_rnn_movilidad_migracion.src.bounded_contexts.modeling.domain.ports.normalization_port import NormalizationPort
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.normalization_port import NormalizationPort
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 
 
