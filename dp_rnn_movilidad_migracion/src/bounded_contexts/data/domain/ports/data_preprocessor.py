@@ -1,27 +1,38 @@
 """
-Módulo que define las interfaces para preprocesadores de datos.
+Puerto de preprocesamiento de datos.
 """
-
 from abc import ABC, abstractmethod
 import pandas as pd
+from typing import Dict, Any
+
 
 class DataPreprocessor(ABC):
     """
     Interfaz para preprocesadores de datos.
     
-    Define el contrato que deben implementar todos los preprocesadores
-    que transforman datos cargados de fuentes externas.
+    Define el contrato que deben cumplir las implementaciones
+    de preprocesadores de diferentes fuentes de datos.
     """
     
     @abstractmethod
     def preprocess(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Preprocesa un DataFrame según reglas específicas.
+        Preprocesa los datos según las reglas específicas de la fuente.
         
         Args:
-            data: DataFrame a preprocesar.
+            data: DataFrame con los datos crudos
             
         Returns:
-            DataFrame preprocesado.
+            DataFrame procesado
+        """
+        pass
+    
+    @abstractmethod
+    def get_feature_names(self) -> Dict[str, Any]:
+        """
+        Obtiene los nombres de las características disponibles después del preprocesamiento.
+        
+        Returns:
+            Diccionario con las características y su configuración.
         """
         pass
