@@ -12,10 +12,10 @@ def main(
     conapo_repository: DataRepository = Provide[ApplicationContainer.conapo_repository],
     inegi_repository: DataRepository = Provide[ApplicationContainer.inegi_repository]
 ):
-    logger.info("Cargando datos de CONAPO a través de la fachada")
+    logger.info("Cargando datos de CONAPO")
     conapo_repository.load_data()
 
-    logger.info("Cargando datos de INEGI a través de la fachada")
+    logger.info("Cargando datos de INEGI")
     inegi_repository.load_data()
 
 
