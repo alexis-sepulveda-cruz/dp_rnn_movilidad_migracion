@@ -44,7 +44,7 @@ class InegiRepository(DataRepository):
         self.inegi_file = inegi_file
 
         self.logger.info("Repositorio de INEGI inicializado")
-        self.logger.debug(f"Ruta configurada: {self.inegi_path}/{self.inegi_file}")
+        self.logger.info(f"Ruta configurada: {self.inegi_path}/{self.inegi_file}")
 
     def load_data(self) -> pd.DataFrame:
         """
@@ -59,7 +59,7 @@ class InegiRepository(DataRepository):
         file_path = os.path.join(self.inegi_path, self.inegi_file)
         df = pd.read_csv(file_path, encoding='ISO-8859-1', low_memory=False)
 
-        self.logger.debug(f"Archivo cargado. Shape inicial: {df.shape}")
+        self.logger.info(f"Archivo cargado. Shape inicial: {df.shape}")
 
         return df
 
