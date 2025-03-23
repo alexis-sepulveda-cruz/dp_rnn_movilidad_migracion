@@ -13,6 +13,7 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persist
     CONAPO_DERIVED_FEATURES,
     CONAPO_TARGET_VARIABLES
 )
+from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 
 
 class ConapoRepository(DataRepository):
@@ -25,7 +26,6 @@ class ConapoRepository(DataRepository):
 
     def __init__(
         self,
-        logger: LoggerPort,  # Remove Provide here, use positional injection
         conapo_path: str,
         conapo_file: str,
         start_year: int,
@@ -45,7 +45,7 @@ class ConapoRepository(DataRepository):
             include_derived: Indicador para incluir características derivadas.
             include_targets: Indicador para incluir variables objetivo.
         """
-        self.logger = logger
+        self.logger = LoggerFactory.get_composite_logger(__name__)
         self.conapo_path = conapo_path
         self.conapo_file = conapo_file
         self.start_year = start_year

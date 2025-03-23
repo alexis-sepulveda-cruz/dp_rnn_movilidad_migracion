@@ -14,6 +14,7 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persist
     CATEGORICAL_FEATURES_FLAT,
     INEGI_DERIVED_FEATURES
 )
+from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 
 
 class InegiRepository(DataRepository):
@@ -26,7 +27,6 @@ class InegiRepository(DataRepository):
 
     def __init__(
         self,
-        logger: LoggerPort,
         inegi_path: str,
         inegi_file: str
     ):
@@ -39,7 +39,7 @@ class InegiRepository(DataRepository):
             inegi_file: Nombre del archivo de INEGI.
             data_processor: Servicio de transformación de datos.
         """
-        self.logger = logger
+        self.logger = LoggerFactory.get_composite_logger(__name__)
         self.inegi_path = inegi_path
         self.inegi_file = inegi_file
 

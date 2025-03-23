@@ -3,7 +3,6 @@ application_container.py - Contenedor de aplicación centralizado
 """
 from dependency_injector import containers, providers
 
-from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.repositories.conapo_repository import ConapoRepository
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.repositories.inegi_repository import InegiRepository
 
@@ -39,25 +38,9 @@ class ApplicationContainer(containers.DeclarativeContainer):
         }
     })
 
-    # Factory de loggers
-    logger_factory = providers.Resource(
-        LoggerFactory.configure,
-        project_name=config.logging.project_name,
-        log_dir=config.logging.log_dir
-    )
-
-    # Provider genérico de loggers
-    logger = providers.Factory(
-        LoggerFactory.get_composite_logger,
-        module_name=providers.Callable(lambda: __name__)
-    )
-
     # Repositorios
     conapo_repository = providers.Singleton(
         ConapoRepository,
-        logger=logger.provider(
-            module_name='dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.conapo_repository'
-        ),
         conapo_path=config.paths.conapo,
         conapo_file=config.files.conapo,
         start_year=config.data.years.start,
@@ -68,9 +51,6 @@ class ApplicationContainer(containers.DeclarativeContainer):
 
     inegi_repository = providers.Singleton(
         InegiRepository,
-        logger=logger.provider(
-            module_name='dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.inegi_repository'
-        ),
         inegi_path=config.paths.inegi,
         inegi_file=config.files.inegi
     )

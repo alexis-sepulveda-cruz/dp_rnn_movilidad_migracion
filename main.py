@@ -5,13 +5,15 @@ from dependency_injector.wiring import inject, Provide
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.bootstrap import bootstrap_app
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.di.application_container import ApplicationContainer
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.domain.ports.data_repository import DataRepository
+from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
+
 
 @inject
 def main(
-    logger=Provide[ApplicationContainer.logger],
     conapo_repository: DataRepository = Provide[ApplicationContainer.conapo_repository],
     inegi_repository: DataRepository = Provide[ApplicationContainer.inegi_repository]
 ):
+    logger = LoggerFactory.get_composite_logger(__name__)
     logger.info("Cargando datos de CONAPO")
     conapo_repository.load_data()
 
