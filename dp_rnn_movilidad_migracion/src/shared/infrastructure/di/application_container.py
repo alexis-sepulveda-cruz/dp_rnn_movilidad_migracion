@@ -1,6 +1,7 @@
 """
 application_container.py - Contenedor de aplicación centralizado
 """
+import os
 from dependency_injector import containers, providers
 
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.repositories.conapo_repository import ConapoRepository
@@ -11,6 +12,11 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.data.application.services.c
 from dp_rnn_movilidad_migracion.src.bounded_contexts.data.application.services.inegi_data_service import InegiDataService
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.normalizer.sklearn_normalizer import SklearnNormalizer
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.data_preparers.model_data_preparation_service import ModelDataPreparationService
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.model_builders.tensorflow_rnn_model_builder import TensorflowRNNModelBuilder
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.model_trainers.tensorflow_model_trainer import TensorflowModelTrainer
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.visualizers.matplotlib_visualizer import MatplotlibVisualizer
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.repositories.file_prediction_repository import FilePredictionRepository
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.application.services.migration_prediction_service import MigrationPredictionService
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -106,4 +112,42 @@ class ApplicationContainer(containers.DeclarativeContainer):
         target_normalizer=target_normalizer,
         static_normalizer=static_normalizer,
         random_seed=config.data.random_seed
+    )
+
+    # Adaptadores
+    model_builder = providers.Factory(
+        TensorflowRNNModelBuilder,
+        random_seed=config.data.random_seed
+    )
+    
+    model_trainer = providers.Factory(
+        TensorflowModelTrainer
+    )
+
+    visualization_dir = providers.Singleton(
+        os.path.join(config.paths.base, 'graficos', 'monte_carlo')
+    )
+    
+    visualizer = providers.Factory(
+        MatplotlibVisualizer,
+        output_dir=visualization_dir
+    )
+    
+    prediction_output_dir = providers.Singleton(
+        os.path.join(config.paths.base, 'resultados', 'predicciones')
+    )
+    
+    prediction_repository = providers.Factory(
+        FilePredictionRepository,
+        output_dir=prediction_output_dir
+    )
+    
+    # Servicios
+    migration_prediction_service = providers.Factory(
+        MigrationPredictionService,
+        model_builder=model_builder,
+        model_trainer=model_trainer,
+        data_preparer=model_data_preparation_service,
+        prediction_repository=prediction_repository,
+        visualizer=visualizer,
     )
