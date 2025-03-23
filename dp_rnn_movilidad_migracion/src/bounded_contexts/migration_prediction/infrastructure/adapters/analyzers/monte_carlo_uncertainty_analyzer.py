@@ -52,9 +52,8 @@ class MonteCarloUncertaintyAnalyzer(UncertaintyAnalyzerPort):
         """
         self.logger.info("Analizando incertidumbre en predicciones")
         
-        # Calcular CV (coeficiente de variación) para cada año
-        abs_values = predictions['CRE_NAT'].abs()
-        cv_values = (predictions['CRE_NAT_std'] / (abs_values + 1e-6)) * 100
+        # Calcular coeficientes de variación usando método compartido
+        cv_values = self._calculate_cv_values(predictions)
         
         # Identificar años con alta incertidumbre
         high_uncertainty_years = predictions.loc[cv_values > self.high_uncertainty_threshold, 'AÑO'].tolist()
@@ -82,6 +81,50 @@ class MonteCarloUncertaintyAnalyzer(UncertaintyAnalyzerPort):
             self.logger.warning(f"Se detectaron {len(high_uncertainty_years)} años con alta incertidumbre")
             
         return metrics
+    
+    def calculate_detailed_metrics(self, predictions: pd.DataFrame) -> pd.DataFrame:
+        """
+        Calcula métricas detalladas de incertidumbre para cada punto de predicción.
+        
+        Enriquece el DataFrame de predicciones con métricas adicionales como niveles
+        de incertidumbre, detección de outliers y puntuaciones z.
+        
+        Args:
+            predictions: DataFrame con predicciones
+            
+        Returns:
+            DataFrame enriquecido con métricas adicionales
+        """
+        self.logger.info("Calculando métricas detalladas de incertidumbre")
+        
+        # Crear copia del DataFrame para no modificar el original
+        detailed_df = predictions.copy()
+        
+        # Calcular relative_std y CV reutilizando el método compartido
+        cv_values = self._calculate_cv_values(detailed_df)
+        detailed_df['CV'] = cv_values
+        detailed_df['relative_std'] = cv_values / 100  # Convertir de porcentaje a proporción
+        
+        # Clasificar niveles de incertidumbre
+        detailed_df['uncertainty_level'] = pd.cut(
+            detailed_df['CV'],
+            bins=[0, 15, 30, 45, 60, 100],
+            labels=['Muy Baja', 'Baja', 'Media', 'Alta', 'Muy Alta']
+        )
+        
+        # Análisis de outliers
+        mean_pred = detailed_df['CRE_NAT'].mean()
+        std_pred = detailed_df['CRE_NAT'].std()
+        detailed_df['z_score'] = (detailed_df['CRE_NAT'] - mean_pred) / (std_pred + 1e-6)
+        detailed_df['is_outlier'] = abs(detailed_df['z_score']) > 2
+        
+        # Contabilizar anomalías
+        outlier_count = detailed_df['is_outlier'].sum()
+        if outlier_count > 0:
+            self.logger.warning(f"Se detectaron {outlier_count} outliers en las predicciones")
+            
+        self.logger.debug("Métricas detalladas calculadas con éxito")
+        return detailed_df
     
     def calculate_prediction_statistics(
         self,
@@ -138,3 +181,23 @@ class MonteCarloUncertaintyAnalyzer(UncertaintyAnalyzerPort):
         
         self.logger.debug(f"Estadísticas calculadas para {future_years} años futuros")
         return df
+    
+    def _calculate_cv_values(self, predictions: pd.DataFrame) -> pd.Series:
+        """
+        Calcula los coeficientes de variación para un DataFrame de predicciones.
+        
+        Este método compartido evita duplicación de código entre analyze_uncertainty
+        y calculate_detailed_metrics.
+        
+        Args:
+            predictions: DataFrame con predicciones
+            
+        Returns:
+            Serie con los coeficientes de variación para cada fila
+        """
+        # Calcular coeficientes de variación de manera robusta
+        abs_values = predictions['CRE_NAT'].abs()
+        cv_values = (predictions['CRE_NAT_std'] / (abs_values + 1e-6)) * 100
+        cv_values = np.clip(cv_values, 0, 100)  # Limitar a rango 0-100%
+        
+        return cv_values

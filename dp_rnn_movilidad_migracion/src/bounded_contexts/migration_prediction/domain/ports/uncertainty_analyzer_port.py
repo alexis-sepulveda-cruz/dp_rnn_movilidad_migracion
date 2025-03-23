@@ -53,3 +53,22 @@ class UncertaintyAnalyzerPort(ABC):
             DataFrame con años y estadísticas calculadas
         """
         pass
+    
+    @abstractmethod
+    def calculate_detailed_metrics(
+        self,
+        predictions: pd.DataFrame
+    ) -> pd.DataFrame:
+        """
+        Calcula métricas detalladas de incertidumbre para cada punto de predicción.
+        
+        Enriquece el DataFrame de predicciones con métricas adicionales como niveles
+        de incertidumbre, detección de outliers y puntuaciones z.
+        
+        Args:
+            predictions: DataFrame con predicciones
+            
+        Returns:
+            DataFrame enriquecido con métricas adicionales
+        """
+        pass
