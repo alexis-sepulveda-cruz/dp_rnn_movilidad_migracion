@@ -61,7 +61,13 @@ class InegiRepository(DataRepository):
 
         self.logger.info(f"Archivo cargado. Shape inicial: {df.shape}")
 
-        return df
+        return df[
+            ['ENT', 'NOM_ENT', 'MUN', 'NOM_MUN', 'LOC', 'NOM_LOC'] 
+            + NUMERIC_FEATURES 
+            + list(CATEGORICAL_FEATURES['binary'].keys())
+            + list(CATEGORICAL_FEATURES['ordinal'].keys())
+            + list(CATEGORICAL_FEATURES['nominal_prefixes'].values())
+        ]
 
     def get_feature_names(self) -> Dict[str, Any]:
         """

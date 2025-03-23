@@ -12,6 +12,7 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.data.application.services.c
 def main(
     inegi_repository: DataRepository = Provide[ApplicationContainer.inegi_repository]
 ):
+    # Cargar datos
     logger = LoggerFactory.get_composite_logger(__name__)
     logger.info("Cargando datos de CONAPO")
     conapo_service = ConapoDataService()
