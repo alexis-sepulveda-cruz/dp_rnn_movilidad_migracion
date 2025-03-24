@@ -11,7 +11,10 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.entities.prediction_result import \
     PredictionResult
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
-
+from dp_rnn_movilidad_migracion.src.bounded_contexts.data.infrastructure.persistence.schemas.inegi_schema import (
+    CATEGORICAL_FEATURES,
+    INEGI_DERIVED_FEATURES
+)
 
 class MatplotlibVisualizer(VisualizationPort):
     """Implementación de VisualizationPort usando Matplotlib y Seaborn."""
@@ -542,4 +545,216 @@ class MatplotlibVisualizer(VisualizationPort):
         plt.savefig(output_path, bbox_inches='tight', dpi=300)
         self.logger.info(f"Visualización detallada guardada en: {output_path}")
         
+        plt.close()
+
+    def plot_features_distribution(self, features_data: Dict[str, float], title: str = "Distribución de Características", 
+                                  save_path: str = None, threshold: float = 0.05) -> None:
+        """
+        Visualiza la distribución relativa de características como un gráfico circular.
+        
+        Args:
+            features_data: Diccionario con nombres de características y sus valores/pesos
+            title: Título del gráfico
+            save_path: Ruta donde guardar la visualización (opcional)
+            threshold: Umbral para agrupar características pequeñas (como porcentaje)
+        """
+        self.logger.info(f"Generando gráfico de distribución de características: {len(features_data)} elementos")
+        
+        # Calcular porcentajes para cada característica
+        total = sum(features_data.values())
+        percentages = {k: (v / total) * 100 for k, v in features_data.items()}
+        
+        # Agrupar características pequeñas en "Otros"
+        main_features = {k: v for k, v in percentages.items() if v >= threshold}
+        minor_features = {k: v for k, v in percentages.items() if v < threshold}
+        
+        if minor_features:
+            others_sum = sum(minor_features.values())
+            main_features['Otros'] = others_sum
+            grouped_labels = ', '.join(minor_features.keys())
+            self.logger.debug(f"Características agrupadas en 'Otros' ({len(minor_features)}): {grouped_labels}")
+        
+        # Colores personalizados para mejor visualización
+        colors = plt.cm.tab20.colors[:len(main_features)]
+        
+        # Crear figura
+        plt.figure(figsize=(10, 8))
+        
+        # Crear gráfico circular
+        wedges, texts, autotexts = plt.pie(
+            main_features.values(), 
+            labels=main_features.keys(),
+            autopct='%1.1f%%',
+            startangle=90,
+            colors=colors,
+            shadow=False,
+            textprops={'fontsize': 10}
+        )
+        
+        # Mejorar presentación de etiquetas
+        for text in texts:
+            text.set_fontsize(10)
+        for autotext in autotexts:
+            autotext.set_fontsize(9)
+            autotext.set_fontweight('bold')
+        
+        # Añadir título
+        plt.title(title, pad=20, fontsize=14)
+        
+        # Añadir círculo central para estilo donut
+        centre_circle = plt.Circle((0, 0), 0.60, fc='white')
+        plt.gca().add_artist(centre_circle)
+        
+        # Añadir texto adicional si hay características agrupadas
+        if minor_features:
+            info_text = f"* 'Otros' incluye {len(minor_features)} características\ncon valores < {threshold:.1f}%"
+            plt.annotate(info_text, xy=(-0.15, -0.10), xycoords='axes fraction', 
+                        fontsize=8, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
+        
+        # Ajustar aspecto para que el círculo sea redondo
+        plt.axis('equal')
+        
+        # Guardar o mostrar la figura
+        if save_path:
+            output_path = save_path
+        else:
+            output_path = os.path.join(self.dirs['presentacion'], 'distribucion_caracteristicas.png')
+            
+        plt.savefig(output_path, bbox_inches='tight', dpi=300)
+        self.logger.info(f"Gráfico de distribución guardado en: {output_path}")
+        
+        plt.close()
+
+    def create_features_distribution_pie(self):
+        """
+        D3 - Gráfico circular de distribución de variables
+        """
+        # Categorizar las variables temporales
+        categories = {
+            'Demográficas básicas': ['POB_MIT_AÑO', 'EDAD_MED', 'HOM_MIT_AÑO', 'MUJ_MIT_AÑO'],
+            'Desarrollo poblacional': ['CRE_NAT', 'IND_ENV', 'RAZ_DEP'],
+            'Dinámica poblacional': ['T_CRE_NAT', 'T_BRU_MOR', 'T_BRU_NAT'],
+            'Población por edad': ['POB_15_49', 'POB_30_64']
+        }
+
+        # Configurar el estilo
+        sns.set_theme('paper')
+        
+        # Contar variables por categoría
+        sizes = [len(vars) for vars in categories.values()]
+        labels = list(categories.keys())
+        
+        # Crear gráfico
+        plt.figure(figsize=(10, 8))
+        plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+        plt.title('Distribución de Variables Temporales')
+        
+        # Añadir leyenda con variables específicas
+        legend_text = [f"{cat}:\n  " + "\n  ".join(vars) 
+                    for cat, vars in categories.items()]
+        plt.legend(legend_text, title="Variables", 
+                loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+        
+        plt.axis('equal')
+        output_path = os.path.join(self.dirs['presentacion'], 'distribucion_variables.png')
+        plt.savefig(
+            output_path, 
+            bbox_inches='tight'
+        )
+        plt.close()
+
+
+    def create_static_features_distribution_pie(self):
+        """
+        Crea un gráfico circular que muestra la distribución de las variables estáticas del INEGI
+        por categoría.
+        """
+        # Definir categorías y contar variables
+        categories = {
+            'Económicas básicas': {
+                'count': 3,
+                'vars': ['PEA', 'PDESOCUP', 'PE_INAC']
+            },
+            'Sociales': {
+                'count': 3,
+                'vars': ['P15YM_AN', 'P3YM_HLI', 'PHOG_IND']
+            },
+            'Vivienda': {
+                'count': 4,
+                'vars': ['VPH_NDEAED', 'VPH_S_ELEC', 'VPH_AGUAFV', 'VPH_NODREN']
+            },
+            'Servicios de salud': {
+                'count': 2,
+                'vars': ['PDER_IMSS', 'PDER_ISTE']
+            },
+            'Educación': {
+                'count': 1,
+                'vars': ['GRAPROES']
+            },
+            'Variables binarias': {
+                'count': len(CATEGORICAL_FEATURES['binary']),
+                'vars': list(CATEGORICAL_FEATURES['binary'].keys())
+            },
+            'Variables ordinales': {
+                'count': len(CATEGORICAL_FEATURES['ordinal']),
+                'vars': list(CATEGORICAL_FEATURES['ordinal'].keys())
+            },
+            'Tasas calculadas': {
+                'count': len(INEGI_DERIVED_FEATURES['tasas']),
+                'vars': INEGI_DERIVED_FEATURES['tasas']
+            },
+            'Índices compuestos': {
+                'count': len(INEGI_DERIVED_FEATURES['indices']),
+                'vars': INEGI_DERIVED_FEATURES['indices']
+            }
+        }
+        
+        # Preparar datos para el gráfico
+        labels = list(categories.keys())
+        sizes = [cat['count'] for cat in categories.values()]
+        
+        # Configurar colores
+        colors = [
+            '#FF9999', '#66B2FF', '#99FF99', '#FFCC99', '#FF99CC',
+            '#99CCFF', '#FFB366', '#99FF99', '#FF99FF'
+        ]
+        
+        # Crear figura con tamaño adecuado
+        plt.figure(figsize=(15, 10))
+        
+        # Crear gráfico de pastel
+        wedges, texts, autotexts = plt.pie(sizes, 
+                                        labels=labels,
+                                        colors=colors,
+                                        autopct='%1.1f%%',
+                                        pctdistance=0.85,
+                                        startangle=90)
+        
+        # Añadir título
+        plt.title('Distribución de Variables Estáticas INEGI', 
+                pad=20, 
+                fontsize=14)
+        
+        # Crear leyenda detallada
+        legend_text = []
+        for category, info in categories.items():
+            vars_text = "\n  ".join(info['vars'])
+            legend_text.append(f"{category} ({info['count']}):\n  {vars_text}")
+        
+        plt.legend(wedges, legend_text,
+                title="Variables por Categoría",
+                loc="center left",
+                bbox_to_anchor=(1, 0, 0.5, 1),
+                fontsize=8)
+        
+        # Ajustar layout
+        plt.tight_layout()
+        
+        # Guardar gráfico
+        output_path = os.path.join(self.dirs['presentacion'], 'distribucion_variables_estaticas.png')
+        plt.savefig(
+            output_path, 
+            bbox_inches='tight',
+            dpi=300
+        )
         plt.close()

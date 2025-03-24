@@ -186,6 +186,8 @@ def main(
     """
     # Configurar logger para la función principal
     logger = LoggerFactory.get_composite_logger(__name__)
+    visualizer.create_features_distribution_pie()
+    visualizer.create_static_features_distribution_pie()
     
     try:
         # 1. Cargar datos

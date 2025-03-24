@@ -64,3 +64,21 @@ class VisualizationPort(ABC):
             prediction: Resultado de predicción del estado a visualizar
         """
         pass
+
+    @abstractmethod
+    def plot_features_distribution(self, features_data: Dict[str, float], title: str = "Distribución de Características", 
+                                  save_path: str = None, threshold: float = 0.05) -> None:
+        """
+        Visualiza la distribución relativa de características como un gráfico circular.
+        
+        Permite visualizar la importancia relativa o distribución de diferentes 
+        características, agrupando automáticamente aquellas con menor peso 
+        para mejorar la legibilidad.
+        
+        Args:
+            features_data: Diccionario con nombres de características y sus valores/pesos
+            title: Título del gráfico
+            save_path: Ruta donde guardar la visualización (opcional)
+            threshold: Umbral para agrupar características pequeñas (como porcentaje)
+        """
+        pass
