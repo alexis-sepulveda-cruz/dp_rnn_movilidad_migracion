@@ -8,6 +8,7 @@ from typing import Tuple, List, Optional
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.data_preparation_port import DataPreparationPort
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.normalization_port import NormalizationPort
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
+from dp_rnn_movilidad_migracion.src.shared.domain.services.state_name_normalizer import StateNameNormalizer
 
 
 class ModelDataPreparationService(DataPreparationPort):
@@ -220,10 +221,26 @@ class ModelDataPreparationService(DataPreparationPort):
             self.logger.warning(f"Datos insuficientes para {entity_id}. Se requieren {sequence_length} registros, encontrados {len(last_sequence)}")
             raise ValueError(f"Datos temporales insuficientes para {entity_id}")
         
-        # Filtrar datos estáticos para la entidad
-        entity_static = static_data[static_data['NOM_ENT'] == entity_id]
+        # Obtener nombre oficial para buscar en datos estáticos
+        official_name = StateNameNormalizer.to_official_name(entity_id)
         
-        if entity_static.empty:
+        # Usar tanto el nombre original como el oficial para la búsqueda
+        search_names = [entity_id]
+        if official_name:
+            search_names.append(official_name)
+            
+        # Filtrar datos estáticos para la entidad usando nombres alternativos
+        entity_static = None
+        for name in search_names:
+            matches = static_data[static_data['NOM_ENT'] == name]
+            if not matches.empty:
+                entity_static = matches
+                self.logger.debug(f"Encontrada coincidencia de datos estáticos con nombre: {name}")
+                break
+        
+        if entity_static is None or entity_static.empty:
+            self.logger.error(f"No se encontraron datos estáticos para {entity_id} ni sus aliases")
+            self.logger.debug(f"Nombres de estados disponibles: {static_data['NOM_ENT'].unique()}")
             raise ValueError(f"No se encontraron datos estáticos para {entity_id}")
         
         # Seleccionar características relevantes

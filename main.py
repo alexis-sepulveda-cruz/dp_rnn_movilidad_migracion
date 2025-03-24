@@ -17,6 +17,7 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.applic
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.entities.prediction_result import PredictionResult
 from dp_rnn_movilidad_migracion.src.shared.domain.value_objects.mexican_states import MexicanState
 from dp_rnn_movilidad_migracion.src.shared.domain.services.state_selection_service import StateSelectionService
+from dp_rnn_movilidad_migracion.src.shared.domain.services.state_name_normalizer import StateNameNormalizer
 
 
 def run_model_training(
@@ -201,10 +202,24 @@ def main(
             logger=logger
         )
         
-        # 3. Generar predicciones por estado - usando el mismo servicio ya entrenado
-        # Usando el nuevo servicio de selección de estados
-        # states_to_compare = StateSelectionService.get_representative_states()
+        # 3. Generar predicciones por estado - usando nombres normalizados
         states_to_compare = MexicanState.get_all_states()
+        
+        # Información para diagnóstico
+        logger.info("Comparando nombres de estados entre INEGI y MexicanState")
+        inegi_states = set(inegi_data['NOM_ENT'].unique())
+        mexican_state_values = set(state for state in states_to_compare)
+        
+        logger.info(f"Estados en INEGI ({len(inegi_states)}): {sorted(inegi_states)}")
+        logger.info(f"Estados en MexicanState ({len(mexican_state_values)}): {sorted(mexican_state_values)}")
+        
+        # Mapeo de diagnóstico
+        for state in states_to_compare:
+            official = StateNameNormalizer.to_official_name(state)
+            if official in inegi_states:
+                logger.debug(f"Mapeo correcto: {state} -> {official}")
+            else:
+                logger.warning(f"Posible problema de mapeo: {state} -> {official}")
         
         results = run_state_predictions(
             states=states_to_compare,
