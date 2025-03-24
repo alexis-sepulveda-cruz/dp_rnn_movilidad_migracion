@@ -29,3 +29,13 @@ class VisualizationPort(ABC):
             save_path: Ruta donde guardar la visualización. Si es None, se usa el directorio predeterminado.
         """
         pass
+    
+    @abstractmethod
+    def plot_state_comparison(self, predictions: Dict[str, PredictionResult]) -> None:
+        """
+        Visualiza comparación de predicciones entre diferentes estados.
+        
+        Args:
+            predictions: Diccionario con estados como claves y predicciones como valores.
+        """
+        pass

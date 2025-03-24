@@ -36,25 +36,27 @@ def main(
     
     logger.info(f"Entrenamiento completado con {len(history['loss'])} épocas")
 
-    # Visualizar historial de entrenamiento
-    visualizer.plot_training_history(history)
-
     # Análisis por estados
     states_to_compare = ["Ciudad de México", "Jalisco", "Nuevo León", "Chiapas"]
-    results = {
-        state: migration_prediction_service.predict_migration(
+    results = {}
+    
+    for state in states_to_compare:
+        prediction_dto = migration_prediction_service.predict_migration(
             request=PredictionRequestDTO(
                 state=state,
                 future_years=5,
-                monte_carlo_samples=100,
+                monte_carlo_samples=500,
                 target_variable='CRE_NAT',
                 confidence_level=0.95
             ),
             temporal_data=conapo_data, 
             static_data=inegi_data
         )
-        for state in states_to_compare
-    }
+        # Obtener la entidad del repositorio para tener el objeto completo
+        results[state] = migration_prediction_service.prediction_repository.get_prediction(state)
+    
+    # Generar visualización comparativa
+    visualizer.plot_state_comparison(results)
 
 
 if __name__ == "__main__":

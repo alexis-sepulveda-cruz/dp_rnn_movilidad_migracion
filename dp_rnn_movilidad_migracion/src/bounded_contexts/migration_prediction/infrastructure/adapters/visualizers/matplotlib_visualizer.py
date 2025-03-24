@@ -141,3 +141,48 @@ class MatplotlibVisualizer(VisualizationPort):
         
         # Cerrar figura para liberar recursos
         plt.close()
+        
+    def plot_state_comparison(self, predictions: Dict[str, PredictionResult]) -> None:
+        """
+        Visualiza comparación de predicciones entre diferentes estados.
+        
+        Args:
+            predictions: Diccionario con estados como claves y predicciones como valores.
+        """
+        self.logger.info(f"Generando visualización comparativa para {len(predictions)} estados")
+        
+        # Configurar el estilo
+        sns.set_theme('paper')
+        plt.figure(figsize=(12, 6))
+        
+        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+        
+        for (state, prediction), color in zip(predictions.items(), colors[:len(predictions)]):
+            plt.plot(prediction.years, prediction.values, 
+                    '-o', label=state, color=color, linewidth=2,
+                    markersize=8, markerfacecolor='white')
+            
+            # Añadir valores sobre los puntos
+            for x, y in zip(prediction.years, prediction.values):
+                plt.annotate(f'{y:,.0f}', 
+                            (x, y), 
+                            textcoords="offset points", 
+                            xytext=(0,10), 
+                            ha='center',
+                            fontsize=8)
+        
+        plt.title('Predicción de Crecimiento Natural por Estado', 
+                 pad=20, fontsize=12)
+        plt.xlabel('Año')
+        plt.ylabel('Crecimiento Natural')
+        plt.grid(True, linestyle='--', alpha=0.7)
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        
+        plt.tight_layout()
+        
+        # Guardar gráfico
+        output_path = os.path.join(self.output_dir, 'comparacion_estados.png')
+        plt.savefig(output_path, bbox_inches='tight', dpi=300)
+        self.logger.info(f"Visualización comparativa guardada en: {output_path}")
+        
+        plt.close()
