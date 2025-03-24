@@ -203,7 +203,8 @@ def main(
         
         # 3. Generar predicciones por estado - usando el mismo servicio ya entrenado
         # Usando el nuevo servicio de selección de estados
-        states_to_compare = StateSelectionService.get_representative_states()
+        # states_to_compare = StateSelectionService.get_representative_states()
+        states_to_compare = MexicanState.get_all_states()
         
         results = run_state_predictions(
             states=states_to_compare,

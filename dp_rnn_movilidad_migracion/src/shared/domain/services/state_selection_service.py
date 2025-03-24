@@ -4,7 +4,7 @@ Servicio de dominio para selección de estados.
 Este servicio proporciona operaciones relacionadas con la selección
 y agrupación de estados mexicanos para análisis.
 """
-from typing import List, Dict, Set
+from typing import List, Dict
 from dp_rnn_movilidad_migracion.src.shared.domain.value_objects.mexican_states import MexicanState
 
 
