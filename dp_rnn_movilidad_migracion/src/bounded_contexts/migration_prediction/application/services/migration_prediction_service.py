@@ -137,6 +137,8 @@ class MigrationPredictionService:
                 entity_id=request.state,
                 temporal_data=temporal_data,
                 static_data=static_data,
+                temporal_features=TEMPORAL_FEATURES,
+                static_features=INEGI_STATIC_FEATURES,
                 sequence_length=self.model.get_sequence_length()
             )
 

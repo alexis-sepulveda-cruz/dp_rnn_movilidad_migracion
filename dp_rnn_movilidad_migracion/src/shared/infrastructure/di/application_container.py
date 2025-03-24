@@ -91,18 +91,18 @@ class ApplicationContainer(containers.DeclarativeContainer):
         preprocessor=inegi_preprocessor
     )
     
-    # Normalización para modelos
-    temporal_normalizer = providers.Factory(
+    # Normalización para modelos - corregido a Singleton
+    temporal_normalizer = providers.Singleton(
         SklearnNormalizer,
         feature_range=(0, 1)
     )
     
-    target_normalizer = providers.Factory(
+    target_normalizer = providers.Singleton(
         SklearnNormalizer,
         feature_range=(-1, 1)
     )
     
-    static_normalizer = providers.Factory(
+    static_normalizer = providers.Singleton(
         SklearnNormalizer,
         feature_range=(0, 1)
     )
