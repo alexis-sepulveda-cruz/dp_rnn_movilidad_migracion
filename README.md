@@ -156,3 +156,44 @@ dp_rnn_movilidad_migracion/
 ```
 
 ## 🔍 Detalles Técnicos
+
+### Modelo RNN
+
+- **Arquitectura**: LSTM multicapa con normalización por lotes
+- **Características de entrada**: Variables demográficas temporales + indicadores socioeconómicos estáticos
+- **Regularización**: Dropout (0.15) y L2 (0.02)
+- **Entrenamiento**: Adam optimizer con learning rate 0.0003
+- **Validación**: Early stopping con patience 25
+
+### Cuantificación de Incertidumbre
+
+El sistema emplea simulación Monte Carlo con varianza controlada:
+
+1. Se realizan múltiples predicciones (500 por defecto) habilitando Dropout en inferencia
+2. Se calcula la distribución de predicciones y estadísticas asociadas
+3. Se controla la propagación de varianza para evitar explosiones
+4. Se obtienen intervalos de confianza mediante estimación por percentiles
+
+## 📝 Licencia
+
+Este proyecto está licenciado bajo [MIT License](LICENSE).
+
+## 👥 Contribuciones
+
+Las contribuciones son bienvenidas. Por favor, siga estos pasos:
+
+1. Fork del repositorio
+2. Crear una rama para su característica (`git checkout -b feature/nueva-caracteristica`)
+3. Commit de sus cambios (`git commit -m 'Agrega nueva característica'`)
+4. Push a la rama (`git push origin feature/nueva-caracteristica`)
+5. Abrir un Pull Request
+
+## 📧 Contacto
+
+Para preguntas o sugerencias, por favor contacte:
+[armando.sepulvedacrz@uanl.edu.mx](armando.sepulvedacrz@uanl.edu.mx), 
+
+---
+
+Desarrollado como parte de investigación en patrones demográficos utilizando técnicas avanzadas de machine learning.
+
