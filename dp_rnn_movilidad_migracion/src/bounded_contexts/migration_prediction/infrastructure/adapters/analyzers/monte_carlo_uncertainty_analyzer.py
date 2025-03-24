@@ -149,9 +149,15 @@ class MonteCarloUncertaintyAnalyzer(UncertaintyAnalyzerPort):
         future_years = all_trajectories.shape[1]
         mean_predictions = np.mean(all_trajectories, axis=0)
         std_predictions = np.std(all_trajectories, axis=0)
-        
+
+        # Enfoque paramétrico
+        # z_score = 1.96  # 95% intervalo de confianza
+        # lower_bound = mean_predictions - z_score * std_predictions
+        # upper_bound = mean_predictions + z_score * std_predictions
+   
         # Calcular percentiles para intervalos de confianza
-        alpha = (1 - confidence_level) / 2
+        # Enfoque no paramétrico (percentiles)
+        alpha = (1 - confidence_level) / 2 
         lower_percentile = alpha * 100
         upper_percentile = (1 - alpha) * 100
         
@@ -162,7 +168,14 @@ class MonteCarloUncertaintyAnalyzer(UncertaintyAnalyzerPort):
         if self.target_normalizer is not None:
             self.logger.debug("Desnormalizando predicciones")
             mean_predictions = self.target_normalizer.inverse_transform(mean_predictions.reshape(-1, 1)).flatten()
-            std_predictions = self.target_normalizer.inverse_transform(std_predictions.reshape(-1, 1)).flatten()
+            
+            # Corregir el cálculo de desviaciones estándar desnormalizadas
+            std_predictions = self.target_normalizer.inverse_transform(
+                std_predictions.reshape(-1, 1)
+            ).flatten() - self.target_normalizer.inverse_transform(
+                np.zeros_like(std_predictions).reshape(-1, 1)
+            ).flatten()
+            
             lower_bound = self.target_normalizer.inverse_transform(lower_bound.reshape(-1, 1)).flatten()
             upper_bound = self.target_normalizer.inverse_transform(upper_bound.reshape(-1, 1)).flatten()
         else:
