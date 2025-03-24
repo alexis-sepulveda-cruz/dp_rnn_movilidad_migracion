@@ -15,6 +15,8 @@ from dp_rnn_movilidad_migracion.src.shared.infrastructure.di.application_contain
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.application.services.migration_prediction_service import MigrationPredictionService
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.application.dto.prediction_request_dto import PredictionRequestDTO
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.entities.prediction_result import PredictionResult
+from dp_rnn_movilidad_migracion.src.shared.domain.value_objects.mexican_states import MexicanState
+from dp_rnn_movilidad_migracion.src.shared.domain.services.state_selection_service import StateSelectionService
 
 
 def run_model_training(
@@ -200,7 +202,9 @@ def main(
         )
         
         # 3. Generar predicciones por estado - usando el mismo servicio ya entrenado
-        states_to_compare = ["Ciudad de México", "Jalisco", "Nuevo León", "Chiapas"]
+        # Usando el nuevo servicio de selección de estados
+        states_to_compare = StateSelectionService.get_representative_states()
+        
         results = run_state_predictions(
             states=states_to_compare,
             conapo_data=conapo_data, 
