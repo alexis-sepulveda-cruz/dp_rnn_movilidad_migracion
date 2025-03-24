@@ -1,6 +1,7 @@
 """
 Punto de entrada principal de la aplicación.
 """
+import pandas as pd
 from dependency_injector.wiring import inject, Provide
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.bootstrap import bootstrap_app
 from dp_rnn_movilidad_migracion.src.shared.infrastructure.factories.logger_factory import LoggerFactory
@@ -13,7 +14,8 @@ def main(
     conapo_service = Provide[ApplicationContainer.conapo_data_service],
     inegi_service = Provide[ApplicationContainer.inegi_data_service],
     visualizer = Provide[ApplicationContainer.visualizer],
-    migration_prediction_service: MigrationPredictionService = Provide[ApplicationContainer.migration_prediction_service]
+    migration_prediction_service: MigrationPredictionService = Provide[ApplicationContainer.migration_prediction_service],
+    uncertainty_analyzer = Provide[ApplicationContainer.uncertainty_analyzer],
 ):
     # Cargar datos
     logger = LoggerFactory.get_composite_logger(__name__)
@@ -57,6 +59,35 @@ def main(
     
     # Generar visualización comparativa
     visualizer.plot_state_comparison(results)
+
+    # Almacenar los scores de confiabilidad
+    reliability_scores = {}
+
+    for state, prediction in results.items():
+        print(f"\nAnálisis para {state}")
+        print("="*50)
+        
+        # Convertir la entidad a DataFrame con métricas detalladas
+        detailed_predictions = uncertainty_analyzer.calculate_detailed_metrics(
+            pd.DataFrame({
+                'AÑO': prediction.years,
+                'CRE_NAT': prediction.values,
+                'CRE_NAT_std': prediction.std_devs,
+                'CRE_NAT_lower': prediction.lower_bounds,
+                'CRE_NAT_upper': prediction.upper_bounds
+            })
+        )
+        
+        # Generar reporte de confiabilidad
+        report = uncertainty_analyzer.generate_reliability_report(detailed_predictions)
+        
+        # Guardar el score de confiabilidad para cada estado
+        reliability_scores[state] = report['reliability_metrics']['reliability_score']
+        
+        # Imprimir reporte
+        uncertainty_analyzer.print_detailed_report(report)
+
+    # Visualizar scores de confiabilidad con reliability_scores
 
 
 if __name__ == "__main__":

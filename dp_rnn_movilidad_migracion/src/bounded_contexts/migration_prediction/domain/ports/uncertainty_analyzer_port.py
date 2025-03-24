@@ -3,7 +3,7 @@ Puerto para el análisis de incertidumbre en predicciones.
 """
 from abc import ABC, abstractmethod
 import pandas as pd
-from typing import List
+from typing import List, Dict, Any
 
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.value_objects.uncertainty_metrics import UncertaintyMetrics
 
@@ -70,5 +70,33 @@ class UncertaintyAnalyzerPort(ABC):
             
         Returns:
             DataFrame enriquecido con métricas adicionales
+        """
+        pass
+
+    @abstractmethod
+    def generate_reliability_report(self, predictions: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Genera un reporte detallado de confiabilidad para predicciones.
+        
+        Analiza las métricas de incertidumbre presentes en las predicciones
+        y genera un reporte estructurado con múltiples indicadores de
+        confiabilidad, distribución de incertidumbre y análisis de outliers.
+        
+        Args:
+            predictions: DataFrame con predicciones enriquecidas con métricas 
+                        de incertidumbre (debe incluir columnas CV, is_outlier)
+                        
+        Returns:
+            Diccionario con métricas organizadas por categorías
+        """
+        pass
+    
+    @abstractmethod
+    def print_detailed_report(self, report: Dict[str, Any]) -> None:
+        """
+        Imprime un reporte detallado de confiabilidad en formato legible.
+        
+        Args:
+            report: Diccionario con el reporte generado por generate_reliability_report
         """
         pass

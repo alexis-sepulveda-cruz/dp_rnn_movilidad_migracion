@@ -3,7 +3,7 @@ Analizador de incertidumbre para predicciones Monte Carlo.
 """
 import numpy as np
 import pandas as pd
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.ports.uncertainty_analyzer_port import UncertaintyAnalyzerPort
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.domain.value_objects.uncertainty_metrics import UncertaintyMetrics
@@ -201,3 +201,101 @@ class MonteCarloUncertaintyAnalyzer(UncertaintyAnalyzerPort):
         cv_values = np.clip(cv_values, 0, 100)  # Limitar a rango 0-100%
         
         return cv_values
+    
+    def generate_reliability_report(self, predictions: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Genera un reporte detallado de confiabilidad para predicciones.
+        
+        Args:
+            predictions: DataFrame con predicciones enriquecidas con métricas 
+                        de incertidumbre
+                        
+        Returns:
+            Diccionario con métricas organizadas por categorías
+        """
+        self.logger.info("Generando reporte de confiabilidad detallado")
+        
+        # Si las métricas detalladas no están presentes, calcularlas
+        if 'CV' not in predictions.columns:
+            self.logger.debug("Métricas detalladas no encontradas, calculándolas")
+            predictions = self.calculate_detailed_metrics(predictions)
+        
+        # Calcular score de confiabilidad usando una función exponencial
+        mean_cv = predictions['CV'].mean()
+        reliability_score = 100 * np.exp(-mean_cv / 50)  # Decae exponencialmente con CV
+        
+        # Analizar la dispersión de las predicciones
+        relative_range = (predictions['CRE_NAT_upper'] - predictions['CRE_NAT_lower']) / (
+            predictions['CRE_NAT'].abs() + 1e-6
+        )
+        
+        # Categorizar años según niveles de incertidumbre más detallados
+        stability_levels = {
+            'very_stable_years': len(predictions[predictions['CV'] <= 15]),
+            'stable_years': len(predictions[(predictions['CV'] > 15) & (predictions['CV'] <= 30)]),
+            'moderate_years': len(predictions[(predictions['CV'] > 30) & (predictions['CV'] <= 45)]),
+            'unstable_years': len(predictions[(predictions['CV'] > 45) & (predictions['CV'] <= 60)]),
+            'very_unstable_years': len(predictions[predictions['CV'] > 60])
+        }
+        
+        # Analizar la tendencia de la incertidumbre
+        uncertainty_trend = predictions['CV'].diff().mean()
+        
+        report = {
+            'reliability_metrics': {
+                'reliability_score': reliability_score,
+                'mean_cv': mean_cv,
+                'median_cv': predictions['CV'].median(),
+                'min_cv': predictions['CV'].min(),
+                'max_cv': predictions['CV'].max()
+            },
+            'uncertainty_analysis': {
+                'mean_relative_range': relative_range.mean(),
+                'uncertainty_trend': uncertainty_trend,
+                'years_high_uncertainty': predictions[predictions['CV'] > 45]['AÑO'].tolist()
+            },
+            'stability_distribution': stability_levels,
+            'prediction_ranges': {
+                'mean_width': (predictions['CRE_NAT_upper'] - predictions['CRE_NAT_lower']).mean(),
+                'relative_width': relative_range.mean() * 100,
+                'outliers_detected': predictions['is_outlier'].sum()
+            }
+        }
+        
+        self.logger.info(f"Reporte generado: confiabilidad={reliability_score:.2f}%, "
+                        f"CV medio={mean_cv:.2f}%, "
+                        f"outliers={report['prediction_ranges']['outliers_detected']}")
+        
+        return report
+    
+    def print_detailed_report(self, report: Dict[str, Any]) -> None:
+        """
+        Imprime un reporte detallado de confiabilidad en formato legible.
+        
+        Args:
+            report: Diccionario con el reporte generado por generate_reliability_report
+        """
+        self.logger.info("Imprimiendo reporte detallado")
+        
+        print("\nREPORTE DE CONFIABILIDAD DETALLADO")
+        print("="*50)
+        
+        print("\n1. Métricas de Confiabilidad:")
+        print(f"  Score de Confiabilidad: {report['reliability_metrics']['reliability_score']:.1f}%")
+        print(f"  CV Medio: {report['reliability_metrics']['mean_cv']:.1f}%")
+        print(f"  CV Mediano: {report['reliability_metrics']['median_cv']:.1f}%")
+        print(f"  Rango CV: [{report['reliability_metrics']['min_cv']:.1f}% - {report['reliability_metrics']['max_cv']:.1f}%]")
+        
+        print("\n2. Análisis de Incertidumbre:")
+        print(f"  Rango Relativo Medio: {report['uncertainty_analysis']['mean_relative_range']:.2f}")
+        print(f"  Tendencia de Incertidumbre: {report['uncertainty_analysis']['uncertainty_trend']:.2f}")
+        print(f"  Años con Alta Incertidumbre: {report['uncertainty_analysis']['years_high_uncertainty']}")
+        
+        print("\n3. Distribución de Estabilidad:")
+        for level, count in report['stability_distribution'].items():
+            print(f"  {level.replace('_', ' ').title()}: {count}")
+        
+        print("\n4. Rangos de Predicción:")
+        print(f"  Ancho Medio del Intervalo: {report['prediction_ranges']['mean_width']:.2f}")
+        print(f"  Ancho Relativo (%): {report['prediction_ranges']['relative_width']:.1f}%")
+        print(f"  Outliers Detectados: {report['prediction_ranges']['outliers_detected']}")
