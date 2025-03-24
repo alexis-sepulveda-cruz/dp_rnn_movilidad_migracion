@@ -50,3 +50,17 @@ class VisualizationPort(ABC):
                 confiabilidad como valores.
         """
         pass
+
+    @abstractmethod
+    def plot_state_detail(self, prediction: PredictionResult) -> None:
+        """
+        Visualiza el detalle de predicción para un estado específico.
+        
+        Crea un gráfico detallado enfocado en un único estado, mostrando
+        la evolución de sus predicciones con formato y anotaciones adaptadas
+        a la magnitud de los valores.
+        
+        Args:
+            prediction: Resultado de predicción del estado a visualizar
+        """
+        pass

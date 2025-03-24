@@ -57,8 +57,12 @@ def main(
         # Obtener la entidad del repositorio para tener el objeto completo
         results[state] = migration_prediction_service.prediction_repository.get_prediction(state)
     
-    # Generar visualización comparativa
+    # Generar visualización comparativa y por estado
     visualizer.plot_state_comparison(results)
+    
+    # Visualizar detalles individuales de cada estado
+    for state, prediction in results.items():
+        visualizer.plot_state_detail(prediction)
 
     # Almacenar los scores de confiabilidad
     reliability_scores = {}

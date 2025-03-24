@@ -240,3 +240,91 @@ class MatplotlibVisualizer(VisualizationPort):
         self.logger.info(f"Visualización de confiabilidad guardada en: {output_path}")
         
         plt.close()
+        
+    def plot_state_detail(self, prediction: PredictionResult) -> None:
+        """
+        Visualiza el detalle de predicción para un estado específico.
+        
+        Args:
+            prediction: Resultado de predicción del estado a visualizar
+        """
+        self.logger.info(f"Generando visualización detallada para {prediction.state}")
+        
+        # Configurar el estilo general
+        sns.set_theme('paper')
+        
+        # Crear la figura
+        fig, ax = plt.subplots(figsize=(12, 6))
+        
+        # Configurar el título principal
+        fig.suptitle(f'Análisis Detallado del Crecimiento Natural - {prediction.state}\n' +
+                    f'Predicciones {min(prediction.years)}-{max(prediction.years)}', 
+                    fontsize=14, y=1.05)
+        
+        # Calcular los valores para los límites de los ejes
+        cre_values = prediction.values
+        cre_min, cre_max = min(cre_values), max(cre_values)
+        cre_range = cre_max - cre_min
+        
+        # Gráfico de Crecimiento Natural
+        line = ax.plot(prediction.years, cre_values,
+                      '-o', color='#1f77b4', linewidth=2, 
+                      markersize=8, markerfacecolor='white',
+                      markeredgewidth=2, 
+                      label='Crecimiento Natural')
+        
+        # Configurar límites y formato del eje Y
+        ax.set_ylim(cre_min - cre_range*0.1, cre_max + cre_range*0.1)
+        
+        # Si los valores son muy grandes, mostrar en miles o millones
+        if abs(cre_max) > 1e6:
+            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e6:.2f}M'))
+            ylabel = 'Millones de habitantes'
+        elif abs(cre_max) > 1e3:
+            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x/1e3:.1f}K'))
+            ylabel = 'Miles de habitantes'
+        else:
+            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x:.0f}'))
+            ylabel = 'Habitantes'
+        
+        # Configurar el grid y los ejes
+        ax.grid(True, linestyle='--', alpha=0.3, which='both')
+        ax.set_title('Predicción del Crecimiento Natural', pad=20, fontsize=12)
+        ax.set_xlabel('Año', fontsize=10)
+        ax.set_ylabel(ylabel, fontsize=10)
+        
+        # Añadir valores sobre los puntos
+        for x, y in zip(prediction.years, cre_values):
+            if abs(y) > 1e6:
+                label = f'{y/1e6:.2f}M'
+            elif abs(y) > 1e3:
+                label = f'{y/1e3:.1f}K'
+            else:
+                label = f'{y:.0f}'
+                
+            ax.annotate(label, 
+                       (x, y),
+                       xytext=(0, 10),
+                       textcoords='offset points',
+                       ha='center',
+                       fontsize=9,
+                       bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
+        
+        # Si hay una métrica de confiabilidad disponible, mostrarla
+        reliability_info = f"Fiabilidad: {prediction.uncertainty_metrics.reliability_score:.1f}%"
+        ax.text(0.02, 0.95, reliability_info,
+               transform=ax.transAxes, fontsize=9,
+               bbox=dict(facecolor='white', alpha=0.7, boxstyle='round'))
+        
+        # Añadir leyenda
+        ax.legend()
+        
+        # Ajustar el layout
+        plt.tight_layout()
+        
+        # Guardar gráfico
+        output_path = os.path.join(self.output_dir, f'{prediction.state}_detalle.png')
+        plt.savefig(output_path, bbox_inches='tight', dpi=300)
+        self.logger.info(f"Visualización detallada guardada en: {output_path}")
+        
+        plt.close()
