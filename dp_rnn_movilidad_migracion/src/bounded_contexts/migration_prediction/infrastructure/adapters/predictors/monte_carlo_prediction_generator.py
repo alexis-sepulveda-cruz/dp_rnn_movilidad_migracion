@@ -68,8 +68,10 @@ class MonteCarloPredictor(PredictionGeneratorPort):
                 batch_size_actual = batch_end - i
                 sequence_batch = np.repeat([current_sequence], batch_size_actual, axis=0)
                 
-                # Usar el modelo para predecir
-                batch_predictions = model.predict(sequence_batch, verbose=0)
+                # batch_predictions = model.predict(sequence_batch, verbose=0) (Determinístico)
+                # CORRECCIÓN CRÍTICA: Usar llamada directa al modelo con training=True
+                # para mantener el comportamiento estocástico del Dropout necesario para Monte Carlo
+                batch_predictions = model(sequence_batch, training=True).numpy() # (Estocástico)
                 predictions_batches.append(batch_predictions)
             
             # Combinar predicciones de todos los lotes
