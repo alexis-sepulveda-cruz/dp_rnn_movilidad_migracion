@@ -21,18 +21,32 @@ class MatplotlibVisualizer(VisualizationPort):
         Inicializa el visualizador.
         
         Args:
-            output_dir: Directorio donde se guardarán las visualizaciones.
+            output_dir: Directorio base donde se guardarán las visualizaciones.
         """
         self.logger = LoggerFactory.get_composite_logger(__name__)
         self.output_dir = output_dir
         
-        # Crear directorio si no existe
+        # Definir subdirectorios para organización
+        self.dirs = {
+            'monte_carlo': os.path.join(self.output_dir, 'monte_carlo'),
+            'resultados': os.path.join(self.output_dir, 'resultados'),
+            'presentacion': os.path.join(self.output_dir, 'presentacion'),
+            'entrenamiento': os.path.join(self.output_dir, 'entrenamiento'),
+            'detalle': os.path.join(self.output_dir, 'detalle')
+        }
+        
+        # Crear todos los directorios
+        for dir_path in self.dirs.values():
+            os.makedirs(dir_path, exist_ok=True)
+            
+        # Crear directorio base también por si acaso
         os.makedirs(self.output_dir, exist_ok=True)
         
         # Configurar estilo de visualización
         sns.set_theme('paper')
         
-        self.logger.info(f"Visualizador inicializado. Directorio de salida: {output_dir}")
+        self.logger.info(f"Visualizador inicializado. Directorio base: {output_dir}")
+        self.logger.debug(f"Subdirectorios creados: {list(self.dirs.keys())}")
 
     def plot_predictions_with_uncertainty(self, prediction: PredictionResult) -> None:
         """
@@ -92,7 +106,11 @@ class MatplotlibVisualizer(VisualizationPort):
         ax2.axhline(y=50, color='r', linestyle='--', alpha=0.5, label='Alta')
 
         plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, f'{prediction.state}_predicciones_con_incertidumbre.png'))
+        
+        # Guardar en directorio Monte Carlo
+        output_path = os.path.join(self.dirs['monte_carlo'], f'{prediction.state}_predicciones_con_incertidumbre.png')
+        plt.savefig(output_path)
+        self.logger.info(f"Visualización de incertidumbre guardada en: {output_path}")
         plt.close()
 
     def plot_training_history(self, history: Dict[str, List[float]], save_path: str = None) -> None:
@@ -134,7 +152,7 @@ class MatplotlibVisualizer(VisualizationPort):
         if save_path:
             output_path = save_path
         else:
-            output_path = os.path.join(self.output_dir, 'training_history.png')
+            output_path = os.path.join(self.dirs['entrenamiento'], 'training_history.png')
             
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
         self.logger.info(f"Historial de entrenamiento guardado en: {output_path}")
@@ -180,8 +198,8 @@ class MatplotlibVisualizer(VisualizationPort):
         
         plt.tight_layout()
         
-        # Guardar gráfico
-        output_path = os.path.join(self.output_dir, 'comparacion_estados.png')
+        # Guardar gráfico en directorio de presentación
+        output_path = os.path.join(self.dirs['presentacion'], 'comparacion_estados.png')
         plt.savefig(output_path, bbox_inches='tight', dpi=300)
         self.logger.info(f"Visualización comparativa guardada en: {output_path}")
         
@@ -234,8 +252,8 @@ class MatplotlibVisualizer(VisualizationPort):
         plt.grid(True, axis='y', linestyle='--', alpha=0.7)
         plt.tight_layout()
         
-        # Guardar gráfico
-        output_path = os.path.join(self.output_dir, 'confiabilidad_estados.png')
+        # Guardar gráfico en directorio de presentación
+        output_path = os.path.join(self.dirs['presentacion'], 'confiabilidad_estados.png')
         plt.savefig(output_path, bbox_inches='tight', dpi=300)
         self.logger.info(f"Visualización de confiabilidad guardada en: {output_path}")
         
@@ -322,8 +340,8 @@ class MatplotlibVisualizer(VisualizationPort):
         # Ajustar el layout
         plt.tight_layout()
         
-        # Guardar gráfico
-        output_path = os.path.join(self.output_dir, f'{prediction.state}_detalle.png')
+        # Guardar gráfico en directorio de detalle
+        output_path = os.path.join(self.dirs['detalle'], f'{prediction.state}_detalle.png')
         plt.savefig(output_path, bbox_inches='tight', dpi=300)
         self.logger.info(f"Visualización detallada guardada en: {output_path}")
         

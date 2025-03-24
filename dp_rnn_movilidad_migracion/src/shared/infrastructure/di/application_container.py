@@ -34,9 +34,10 @@ class ApplicationContainer(containers.DeclarativeContainer):
             "log_dir": "logs"
         },
         "paths": {
-            "base": "",
+            "base": os.path.expanduser("~/Documents/Maestria_Ciencia_Datos/Tesis/dp_rnn_movilidad_migracion"),
             "conapo": "",
-            "inegi": ""
+            "inegi": "",
+            "output": "graficos"
         },
         "files": {
             "conapo": "5_Indicadores_demográficos_proyecciones.xlsx",
@@ -126,19 +127,28 @@ class ApplicationContainer(containers.DeclarativeContainer):
         TensorflowModelTrainer
     )
 
-    visualization_dir = os.path.join('/Users/armandoalexissepulveda/Documents/Maestria_Ciencia_Datos/Tesis/dp_rnn_movilidad_migracion', 'graficos', 'monte_carlo')
-
-    
-    visualizer = providers.Factory(
-        MatplotlibVisualizer,
-        output_dir=visualization_dir
+    # Funciones de utilidad para cálculo de rutas (providers.Callable permite evaluación tardía)
+    get_visualization_dir = providers.Callable(
+        lambda base, output: os.path.join(base, output),
+        base=config.paths.base,
+        output=config.paths.output
     )
     
-    prediction_output_dir = os.path.join('/Users/armandoalexissepulveda/Documents/Maestria_Ciencia_Datos/Tesis/dp_rnn_movilidad_migracion', 'resultados', 'predicciones')
+    get_prediction_dir = providers.Callable(
+        lambda base: os.path.join(base, 'resultados', 'predicciones'),
+        base=config.paths.base
+    )
+
+    # Visualizador con directorio base configurado - usando evaluación tardía
+    visualizer = providers.Factory(
+        MatplotlibVisualizer,
+        output_dir=get_visualization_dir
+    )
     
+    # Repositorio de predicciones - usando evaluación tardía
     prediction_repository = providers.Factory(
         FilePredictionRepository,
-        output_dir=prediction_output_dir
+        output_dir=get_prediction_dir
     )
 
     # Adaptadores adicionales para predicción
