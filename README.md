@@ -191,9 +191,8 @@ Las contribuciones son bienvenidas. Por favor, siga estos pasos:
 ## 📧 Contacto
 
 Para preguntas o sugerencias, por favor contacte:
-[armando.sepulvedacrz@uanl.edu.mx](armando.sepulvedacrz@uanl.edu.mx), 
+[armando.sepulvedacrz@uanl.edu.mx](armando.sepulvedacrz@uanl.edu.mx), [armando.sepulvedacrz@gmail.com](armando.sepulvedacrz@gmail.com)
 
 ---
 
 Desarrollado como parte de investigación en patrones demográficos utilizando técnicas avanzadas de machine learning.
-
