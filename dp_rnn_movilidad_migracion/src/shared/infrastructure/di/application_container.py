@@ -165,7 +165,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
     )
     
     # Servicios
-    migration_prediction_service = providers.Factory(
+    migration_prediction_service = providers.Singleton(
         MigrationPredictionService,
         model_builder=model_builder,
         model_trainer=model_trainer,
