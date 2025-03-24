@@ -39,3 +39,14 @@ class VisualizationPort(ABC):
             predictions: Diccionario con estados como claves y predicciones como valores.
         """
         pass
+
+    @abstractmethod
+    def plot_reliability_comparison(self, reliability_scores: Dict[str, float]) -> None:
+        """
+        Visualiza comparación de scores de confiabilidad entre diferentes estados.
+        
+        Args:
+            reliability_scores: Diccionario con estados como claves y scores de
+                confiabilidad como valores.
+        """
+        pass

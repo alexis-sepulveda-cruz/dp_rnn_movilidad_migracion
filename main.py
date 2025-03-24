@@ -87,7 +87,8 @@ def main(
         # Imprimir reporte
         uncertainty_analyzer.print_detailed_report(report)
 
-    # Visualizar scores de confiabilidad con reliability_scores
+    # Visualizar scores de confiabilidad
+    visualizer.plot_reliability_comparison(reliability_scores)
 
 
 if __name__ == "__main__":

@@ -186,3 +186,57 @@ class MatplotlibVisualizer(VisualizationPort):
         self.logger.info(f"Visualización comparativa guardada en: {output_path}")
         
         plt.close()
+        
+    def plot_reliability_comparison(self, reliability_scores: Dict[str, float]) -> None:
+        """
+        Visualiza comparación de scores de confiabilidad entre diferentes estados.
+        
+        Args:
+            reliability_scores: Diccionario con estados como claves y scores de
+                confiabilidad como valores.
+        """
+        self.logger.info(f"Generando visualización de confiabilidad para {len(reliability_scores)} estados")
+        
+        # Obtener datos para el gráfico
+        states = list(reliability_scores.keys())
+        scores = list(reliability_scores.values())
+        
+        # Configurar y crear figura
+        plt.figure(figsize=(10, 6))
+        
+        # Crear gráfico de barras con colores personalizados
+        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+        bars = plt.bar(range(len(states)), scores, color=colors[:len(states)])
+        
+        # Personalizar el gráfico
+        plt.title('Score de Confiabilidad por Estado\nBasado en Análisis Monte Carlo', 
+                 pad=20, fontsize=12)
+        plt.xlabel('Estado', fontsize=10)
+        plt.ylabel('Score de Confiabilidad (%)', fontsize=10)
+        
+        # Configurar eje X
+        plt.xticks(range(len(states)), states, rotation=45, ha='right')
+        
+        # Configurar eje Y
+        min_score = min(scores) - 1
+        max_score = max(scores) + 1
+        plt.ylim(min_score, max_score)
+        
+        # Añadir valores sobre las barras
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}%',
+                    ha='center', va='bottom',
+                    fontsize=9)
+        
+        # Añadir grid y ajustar layout
+        plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+        plt.tight_layout()
+        
+        # Guardar gráfico
+        output_path = os.path.join(self.output_dir, 'confiabilidad_estados.png')
+        plt.savefig(output_path, bbox_inches='tight', dpi=300)
+        self.logger.info(f"Visualización de confiabilidad guardada en: {output_path}")
+        
+        plt.close()
