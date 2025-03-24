@@ -49,7 +49,8 @@ def main(
                 future_years=5,
                 monte_carlo_samples=500,
                 target_variable='CRE_NAT',
-                confidence_level=0.95
+                confidence_level=0.95,
+                visualize=True  # Activar visualización automática
             ),
             temporal_data=conapo_data, 
             static_data=inegi_data

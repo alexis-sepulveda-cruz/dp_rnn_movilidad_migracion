@@ -33,6 +33,9 @@ class PredictionRequestDTO:
         confidence_level (float): Nivel de confianza para los intervalos
             de predicción, expresado como un valor entre 0 y 1. Por defecto es 0.95
             para intervalos de confianza del 95%.
+            
+        visualize (bool): Indica si se debe visualizar automáticamente el
+            resultado de la predicción. Por defecto es False.
     """
 
     def __init__(
@@ -41,7 +44,8 @@ class PredictionRequestDTO:
         future_years: int = 5,
         monte_carlo_samples: int = 100,
         target_variable: str = 'CRE_NAT',
-        confidence_level: float = 0.95
+        confidence_level: float = 0.95,
+        visualize: bool = False
     ):
         """
         Inicializa un nuevo objeto de solicitud de predicción.
@@ -52,6 +56,7 @@ class PredictionRequestDTO:
             monte_carlo_samples: Número de muestras Monte Carlo
             target_variable: Variable objetivo a predecir
             confidence_level: Nivel de confianza para intervalos
+            visualize: Si True, visualiza automáticamente los resultados
         """
         self.logger = LoggerFactory.get_composite_logger(__name__)
         self.state = state
@@ -59,12 +64,14 @@ class PredictionRequestDTO:
         self.monte_carlo_samples = monte_carlo_samples
         self.target_variable = target_variable
         self.confidence_level = confidence_level
+        self.visualize = visualize
         
         self.logger.info(f"Solicitud de predicción creada para {state}, "
                         f"años futuros: {future_years}, "
                         f"variable: {target_variable}")
         self.logger.debug(f"Parámetros avanzados - muestras MC: {monte_carlo_samples}, "
-                         f"nivel de confianza: {confidence_level}")
+                         f"nivel de confianza: {confidence_level}, "
+                         f"visualizar: {visualize}")
     
     def validate(self) -> bool:
         """
