@@ -56,7 +56,7 @@ bounded_contexts/
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/yourusername/dp_rnn_movilidad_migracion.git
+git clone https://github.com/alexis-sepulveda-cruz/dp_rnn_movilidad_migracion
 cd dp_rnn_movilidad_migracion
 
 # Crear entorno virtual (recomendado)
