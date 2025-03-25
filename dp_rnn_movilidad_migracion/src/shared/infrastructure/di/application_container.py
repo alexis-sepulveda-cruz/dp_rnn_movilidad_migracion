@@ -19,6 +19,7 @@ from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infras
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.application.services.migration_prediction_service import MigrationPredictionService
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.predictors.monte_carlo_prediction_generator import MonteCarloPredictor
 from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.analyzers.monte_carlo_uncertainty_analyzer import MonteCarloUncertaintyAnalyzer
+from dp_rnn_movilidad_migracion.src.bounded_contexts.migration_prediction.infrastructure.adapters.exporters.power_bi_data_exporter import PowerBIDataExporter
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -138,6 +139,11 @@ class ApplicationContainer(containers.DeclarativeContainer):
         lambda base: os.path.join(base, 'resultados', 'predicciones'),
         base=config.paths.base
     )
+    
+    get_export_dir = providers.Callable(
+        lambda base: os.path.join(base, 'exports', 'power_bi'),
+        base=config.paths.base
+    )
 
     # Visualizador con directorio base configurado - usando evaluación tardía
     visualizer = providers.Factory(
@@ -174,4 +180,11 @@ class ApplicationContainer(containers.DeclarativeContainer):
         visualizer=visualizer,
         prediction_generator=prediction_generator,
         uncertainty_analyzer=uncertainty_analyzer
+    )
+    
+    # Servicios adicionales
+    power_bi_exporter = providers.Factory(
+        PowerBIDataExporter,
+        prediction_repository=prediction_repository,
+        output_dir=get_export_dir
     )
